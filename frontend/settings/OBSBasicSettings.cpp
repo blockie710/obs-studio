@@ -4530,7 +4530,6 @@ void OBSBasicSettings::AdvOutRecCheckCodecs()
 		AdvOutRecCheckWarnings();
 }
 
-#if defined(__APPLE__) && QT_VERSION < QT_VERSION_CHECK(6, 5, 1)
 // Workaround for QTBUG-56064 on macOS
 static void ResetInvalidSelection(QComboBox *cbox)
 {
@@ -4539,20 +4538,21 @@ static void ResetInvalidSelection(QComboBox *cbox)
 		return;
 
 	QStandardItemModel *model = dynamic_cast<QStandardItemModel *>(cbox->model());
-	QStandardItem *item = model->item(idx);
-
-	if (item->isEnabled())
+	if (!model)
 		return;
-
-	// Reset to "invalid" state if item was disabled
-	cbox->blockSignals(true);
-	cbox->setCurrentIndex(-1);
-	cbox->blockSignals(false);
+		
+	QStandardItem *item = model->item(idx);
+	if (!item || !item->isEnabled()) {
+		// Reset to "invalid" state if item was disabled
+		cbox->blockSignals(true);
+		cbox->setCurrentIndex(-1);
+		cbox->blockSignals(false);
+	}
 }
-#endif
 
 void OBSBasicSettings::AdvOutRecCheckWarnings()
 {
+	auto Checked = [](QCheckBox *box) {
 	auto Checked = [](QCheckBox *box) {
 		return box->isChecked() ? 1 : 0;
 	};
