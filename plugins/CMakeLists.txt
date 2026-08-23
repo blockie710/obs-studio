@@ -91,6 +91,11 @@ add_obs_plugin(
     PLATFORMS WINDOWS MACOS LINUX
     WITH_MESSAGE
 )
+add_obs_plugin(
+    obs-vst3
+    PLATFORMS WINDOWS MACOS LINUX
+    WITH_MESSAGE
+)
 add_obs_plugin(obs-webrtc)
 
 check_obs_websocket()
@@ -104,3 +109,11 @@ add_obs_plugin(vlc-video WITH_MESSAGE)
 add_obs_plugin(win-capture PLATFORMS WINDOWS)
 add_obs_plugin(win-dshow PLATFORMS WINDOWS)
 add_obs_plugin(win-wasapi PLATFORMS WINDOWS)
+
+if(ENABLE_ASIO)
+  add_obs_plugin(
+      win-asio
+      PLATFORMS WINDOWS
+      WITH_MESSAGE
+  )
+endif()

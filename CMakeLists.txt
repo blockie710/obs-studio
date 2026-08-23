@@ -24,6 +24,10 @@ option(ENABLE_FRONTEND "Enable building with UI (requires Qt)" ON)
 option(ENABLE_SCRIPTING "Enable scripting support" ON)
 option(ENABLE_HEVC "Enable HEVC encoders" ON)
 
+# Native Pro-Audio Options
+option(ENABLE_ASIO "Enable native Windows ASIO capture plugin (win-asio)" ON)
+option(ENABLE_VST "Enable native VST3 plugin host filter (obs-vst3)" ON)
+
 add_subdirectory(libobs)
 if(OS_WINDOWS)
   add_subdirectory(libobs-d3d11)
