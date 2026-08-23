@@ -85,20 +85,20 @@ foreach(graphics_library IN ITEMS opengl metal d3d11)
   string(TOUPPER ${graphics_library} graphics_library_U)
   if(TARGET OBS::libobs-${graphics_library})
     target_compile_definitions(
-      obs-studio
+      obs-community-studio
       PRIVATE
         DL_${graphics_library_U}="$<$<IF:$<PLATFORM_ID:Windows>,TARGET_FILE_NAME,TARGET_SONAME_FILE_NAME>:OBS::libobs-${graphics_library}>"
     )
   else()
-    target_compile_definitions(obs-studio PRIVATE DL_${graphics_library_U}="")
+    target_compile_definitions(obs-community-studio PRIVATE DL_${graphics_library_U}="")
   endif()
 endforeach()
 
 get_property(obs_module_list GLOBAL PROPERTY OBS_MODULES_ENABLED)
 list(JOIN obs_module_list "|" SAFE_MODULES)
-target_compile_definitions(obs-studio PRIVATE "SAFE_MODULES=\"${SAFE_MODULES}\"")
+target_compile_definitions(obs-community-studio PRIVATE "SAFE_MODULES=\\\"${SAFE_MODULES}\\\"")
 
-get_target_property(target_sources obs-studio SOURCES)
+get_target_property(target_sources obs-community-studio SOURCES)
 set(target_cpp_sources ${target_sources})
 set(target_hpp_sources ${target_sources})
 set(target_qt_sources ${target_sources})

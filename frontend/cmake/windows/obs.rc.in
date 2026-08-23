@@ -1,4 +1,4 @@
-IDI_ICON1 ICON DISCARDABLE "cmake/windows/obs-studio.ico"
+IDI_ICON1 ICON DISCARDABLE "cmake/windows/obs-community-studio.ico"
 
 1 VERSIONINFO
 FILEVERSION ${OBS_VERSION_MAJOR},${OBS_VERSION_MINOR},${OBS_VERSION_PATCH},0
@@ -7,14 +7,14 @@ BEGIN
   BEGIN
     BLOCK "040904B0"
     BEGIN
-      VALUE "CompanyName", "OBS"
-      VALUE "FileDescription", "OBS Studio"
+      VALUE "CompanyName", "OBS Community"
+      VALUE "FileDescription", "OBS Community Studio"
       VALUE "FileVersion", "${OBS_VERSION_CANONICAL}"
-      VALUE "InternalName", "obs"
-      VALUE "OriginalFilename", "obs"
-      VALUE "ProductName", "OBS Studio"
+      VALUE "InternalName", "obs-community-studio"
+      VALUE "OriginalFilename", "obs-community-studio"
+      VALUE "ProductName", "OBS Community Studio"
       VALUE "ProductVersion", "${OBS_VERSION_CANONICAL}"
-      VALUE "Comments", "Free and open source software for video recording and live streaming"
+      VALUE "Comments", "Community-first independent OBS Studio hard fork - GPLv3+"
       VALUE "LegalCopyright", "${OBS_LEGAL_COPYRIGHT}"
     END
   END

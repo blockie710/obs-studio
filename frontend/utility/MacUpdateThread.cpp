@@ -55,7 +55,7 @@ try {
 	/* ----------------------------------- *
 	 * get branches from server            */
 
-	if (FetchAndVerifyFile("branches", "obs-studio/updates/branches.json", MAC_BRANCHES_URL, &text)) {
+	if (FetchAndVerifyFile("branches", "obs-community-studio/updates/branches.json", MAC_BRANCHES_URL, &text)) {
 		App()->SetBranchData(text);
 	}
 

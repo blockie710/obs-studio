@@ -33,7 +33,7 @@ using CrashLogUpdateResult = OBS::CrashHandler::CrashLogUpdateResult;
 
 namespace {
 
-constexpr std::string_view crashSentinelPath = "obs-studio/.sentinel";
+constexpr std::string_view crashSentinelPath = "obs-community-studio/.sentinel";
 constexpr std::string_view crashSentinelPrefix = "run_";
 constexpr std::string_view crashUploadURL = "https://obsproject.com/logs/upload";
 
