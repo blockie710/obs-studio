@@ -1,123 +1,333 @@
-OBS Studio Contribution Guidelines
-============
+# CONTRIBUTING.md
 
-OBS Studio accepts contributions via public **pull requests**, which encompass changes made to the project as well as a written description of the changes made and the motivation behind them.
+# Contributing to the Community-First Independent OBS Studio Hard Fork
 
-Pull requests can be opened by any user with sufficient contribution permissions on the platform chosen by the project. Likewise, any user with sufficient access permissions is able to read, comment, and suggest changes to a pull request, but the ultimate decision for or against adopting the suggested changes lies with **project members**.
+Thank you for contributing! This document outlines the guidelines and expectations for all contributors—human and AI-assisted alike.
 
-OBS Studio has shown steady growth of popularity, complexity, and scope throughout its existence. Contributions that demonstrate they have taken the aspects outlined in this document into account (including the impact to the maintainability of the project) will potentially, but not necessarily, have a higher chance of adoption.
+---
 
-> [!NOTE]
-> Past acceptance of a change, including “prior art” that exists in the codebase, does not guarantee that future, similar, changes will be accepted, as the “state of the art” (code style guidelines, best practices, language standard) is constantly evolving and the project consciously chooses to evolve with them.
+## Table of Contents
 
-These guidelines attempt to provide a set of general rules that any contributor can choose to follow and implement before opening a pull request to reduce review effort and increase its chances for adoption.
+1. [Getting Started](#getting-started)
+2. [Development Workflow](#development-workflow)
+3. [Code Standards](#code-standards)
+4. [Testing Requirements](#testing-requirements)
+5. [Commit & PR Conventions](#commit--pr-conventions)
+6. [AI-Assisted Development](#ai-assisted-development)
+7. [Review Process](#review-process)
+8. [Architecture Decisions](#architecture-decisions)
 
-## General Contribution Guidelines
+---
 
-The canonical language used by the project is “American English”, which mainly applies to source code and non-translated material. Examples include:
+## Getting Started
 
-* Commit messages
-* Names of constants, variables, and types
-* Source code comments
-* File names
+### Prerequisites
 
-Appropriate templates are presented to the user when opening a new issue report or pull request on GitHub which are required to be fully filled out to be taken into consideration by the project.
-The template might require checking off items that might not be applicable e.g., the requirement to have the code properly formatted does not apply when the contribution has not changed any source code. **It is permissible and preferred to tick the box regardless**.
+- **OS**: Windows 10/11 (x64), macOS 13+, or Linux (glibc 2.31+)
+- **Compiler**: MSVC v143 (VS 2022 17.8+), Clang 17+, or GCC 13+
+- **CMake**: 3.28 or later
+- **Qt**: 6.6+ (for frontend)
+- **Git**: 2.40+ with LFS (`git lfs install`)
 
-Authors of contributions to the OBS Project are expected to abide by the “OBS Project Code of Conduct” available at https://github.com/obsproject/obs-studio/blob/master/COC.rst.
+### First-Time Setup
 
-## Commit Authoring Guidelines
+```bash
+# Clone
+git clone https://github.com/obs-community/obs-community-studio.git
+cd obs-community-studio
 
-The project uses the “50/72” standard for commit messages, which requires that a commit title uses no more than 50 characters, while any consecutive line used for the commit description is allowed to use a maximum of 72 characters (with long lines manually broken up).
+# Configure (adjust paths as needed)
+cmake -B build -S . \
+  -DENABLE_ASIO=ON \
+  -DENABLE_VST3=ON \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
-The “anatomy” of a correct commit message with description looks like this:
+# Build
+cmake --build build --config RelWithDebInfo --parallel
 
-```
-prefix: This is a commit title using 50 characters
-
-This is a commit description line that is allowed to use up to 72 chars
-```
-
-Prefixes are commonly defined by the “module” the commit applies changes to, which has repercussions as to how commit contents are authored (see below).
-
-* Changes made to code for “libobs” should use the “libobs” prefix, similarly changes made to “obs-ffmpeg” use “obs-ffmpeg”.
-* Changes made to multiple modules in the “plugins” directory can use the “plugins” prefix, particularly if the changes are of a similar nature
-* Changes made to files involved in continuous integration (CI) should use the “CI” prefix regardless of the directory name.
-* Changes made to files used by the CMake build system should use the “cmake” prefix”
-
-When in doubt about what the correct prefix for a change might be, the existing commit history might be of help, however project guidelines might have changed in the interim and thus a “past” commit message might not be acceptable for new contributions.
-
-### Commit Messages
-
-The commit message is the primary place for documentation of changes, not only as a summary of “what” was changed, but even more importantly “why” the changes were made and “why” specifically in the way they have been made.
-
-As such the commit message should be written in such a way that it could easily pass as the “Description” and “Motivation and Context” required when opening a new pull request (and indeed platforms like GitHub will automatically copy the commit message into the opening post for a pull request with a single commit).
-
-This ensures that documentation and context are encoded within the source tree and do not require external documents or platforms to ensure this information is not lost.
-
-Many of these ideas match the ideas outlined in https://chris.beams.io/git-commit.
-
-### Commit Content Authoring Guidelines
-
-#### Code Style
-
-All code contributions to the project need to follow code style guidelines appropriate to the languages used by the changed files. For C and C++ the project has chosen to adopt well-established code style guidelines as its baseline with specific exceptions and changes outlined in a [separate document](https://github.com/obsproject/obs-studio/blob/master/CODESTYLE.md).
-
-The baseline rules for the common languages used by the project are:
-
-* C code needs to follow the Linux Kernel Coding Style (https://github.com/torvalds/linux/blob/master/Documentation/process/coding-style.rst)
-* C++ code needs to follow OBS Studios’ style guide. Familiarity with the Google C++ Style Guide (https://google.github.io/styleguide/cppguide.html) can serve as a baseline.
-* Objective-C and Objective-C++ code needs to follow Apple’s ObjectiveC Conventions (https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/Conventions/Conventions.html)
-* Swift code needs to follow the API Design Guidelines (https://www.swift.org/documentation/api-design-guidelines/)
-* **The column size limit for all code is 120 characters**
-
-To help with the formatting of code, the project contains configuration files for code-formatters of several languages:
-
-* `clang-format` can be used to correctly format C, C++, Objective-C, and Objective-C++ soure code
-* `swift-format` can be used to correctly format Swift source code
-* `gersemi` can be used to correctly format CMake source code
-
-> [!NOTE]
-> The “build-aux” directory in the project’s root directory contains scripts that can automate this process and are used by the project’s CI infrastructure to automatically check all contributions that changed corresponding source code files.
-
-#### Commit Contents
-
-The changes contained in a commit should attempt to represent logical “units of change” that make sense in isolation and do not necessarily require any preceding or following commits to work. Indeed if a single commit would potentially leave the project in a broken state (e.g., the project cannot be compiled, the application not run, or basic application functionality cannot function) then it is not a full “unit of change”.
-
-* Changes to misspelled words or purely aesthetic changes should in principle not be individually capable of breaking the project in such a way and are permitted to be grouped into a single “large” commit
-* If a larger change requires some foundation of fixes to the existing code to make sense, those fixes represent a “unit of change” that should be decoupled from the functional changes made on top of them. Even better, such a change should be encapsulated in its own, separate, pull request.
-
-> [!IMPORTANT]
-> During review and collaboration the need for additional changes can arise quickly. It is permitted (and preferred) to temporarily ignore these guidelines to quickly provide changes required to address review comments and add many small, iterative, commits to the pull request.
->
-> Once all review comments have been addressed, the changes need to be squashed into existing commits or alternatively a new set of commits can be created from all accumulated changes to restore compliance with the guidelines again.
-
-#### Co-Authorship
-
-Sometimes an open pull request might have been "lost to time" even though its contents might still be a meaningful and positive change. When picking up such a change and authoring a new pull request to "finish it", the original author should be retained as much as possible:
-
-* The original commit can be cherry-picked, which will retain the author information and only change the committer information
-* If the original commit needs to be adjusted and changed as it will not apply to an updated code-base, its original author should be added as a "Co-Author" to the commit message.
-
-```
-libobs: Refactor audio implementation
-
-
-Additional commit description
-<..>
-Co-authored-by: Name <git@address.TLD>
+# Run tests
+cd build && ctest --output-on-failure
 ```
 
-# AI/Machine Learning Policy
+---
 
-AI/machine learning systems such as Copilot, ChatGPT, and Claude, are prone to generating plausible-sounding, but wrong code that makes incorrect assumptions about OBS internals or APIs it interfaces with.
+## Development Workflow
 
-This means code generated by such systems will require human review and is likely to require human intervention. If the submitter is unable to undertake that work themselves due to a lack of understanding of the OBS codebase and/or programming, the submission has a high likelihood of being invalid. Such invalid submissions end up taking maintainers' time to review and respond away from legitimate submissions.
+### Branch Strategy
 
-Additionally, such systems have been demonstrated to reproduce code contained in the training data, which may have been originally published under a license that would prohibit its inclusion in OBS.
+- **`main`**: Protected, always deployable. Only merges via PR.
+- **`feature/*`**: New features, one per branch.
+- **`fix/*`**: Bug fixes, linked to an issue.
+- **`refactor/*`**: Non-functional improvements.
+- **`docs/*`**: Documentation-only changes.
 
-Because of the above concerns, we have opted to take the following policy towards submissions with regard to the use of these AI tools:
+### Pull Request Requirements
 
-* All text and content submitted to our project, which includes code, descriptions, issues, and comments, must be **human written**.
-* The use of GitHub Copilot and other assistive AI technologies is heavily discouraged.
-* Low-effort or incorrect submissions that are determined to have been generated by, or created with aid of such systems may lead to a ban from contributing to the repository or project as a whole.
+Every PR must:
+
+1. **Reference an issue** (or create one if none exists)
+2. **Pass all CI checks** (build, static analysis, tests)
+3. **Include tests** for new functionality
+4. **Update documentation** if user-facing behavior changes
+5. **Be rebased** on latest `main` before merge
+
+### PR Size Guideline
+
+- **< 400 lines changed** preferred (exceptions for generated code, vendoring)
+- Split large changes into stacked PRs
+- Each PR should be reviewable in < 30 minutes
+
+---
+
+## Code Standards
+
+### Languages & Versions
+
+| Component | Standard | Notes |
+|-----------|----------|-------|
+| libobs (core) | C11 | No C++ in core |
+| Plugins | C++20 | Modules where supported |
+| Frontend | C++20 / Qt6 | Modern Qt APIs only |
+| Build scripts | CMake 3.28+ | No custom build systems |
+
+### Formatting
+
+- **C/C++**: `.clang-format` (run `clang-format -i` before commit)
+- **CMake**: `cmake-format` (enforced in CI)
+- **Markdown**: `prettier --prose-wrap always`
+- **No tabs** — 4 spaces (C/C++), 2 spaces (CMake, Markdown)
+
+### Naming Conventions
+
+```c
+// C (libobs)
+obs_source_t*        // types: snake_case + _t
+obs_source_create()  // functions: snake_case
+MAX_AUDIO_CHANNELS   // constants: UPPER_SNAKE_CASE
+
+// C++ (plugins, frontend)
+class AudioProcessor  // types: PascalCase
+void processAudio()   // methods: camelCase
+int sample_rate_      // members: snake_case_
+constexpr int kMaxChannels = 64;  // constants: kPascalCase
+```
+
+### Real-Time Audio Thread Rules
+
+**NEVER** on the audio thread:
+- ❌ Memory allocation (`new`, `malloc`, `std::vector::push_back`)
+- ❌ Locks/mutexes (`std::mutex`, `pthread_mutex_lock`)
+- ❌ System calls (`fopen`, `socket`, `printf`)
+- ❌ Unbounded loops or recursion
+- ❌ Exception throwing/catching
+
+**ALWAYS** on the audio thread:
+- ✅ Lock-free data structures (SPSC ring buffers, atomics)
+- ✅ Pre-allocated buffers (pool allocators)
+- ✅ Bounded, deterministic operations
+- ✅ SIMD-optimized math (AVX2 intrinsics where beneficial)
+
+### Header Hygiene
+
+- **Self-contained**: Every header compiles standalone
+- **Forward declarations** preferred over includes
+- **Module maps** where supported (Clang/MSVC)
+- **No `using namespace`** in headers
+
+---
+
+## Testing Requirements
+
+### Test Categories
+
+| Category | Tool | When Required |
+|----------|------|---------------|
+| Unit | GoogleTest | Every new function/class |
+| Integration | Custom + GoogleTest | Plugin <-> core interactions |
+| Audio correctness | Custom DSP tests | Any audio processing change |
+| Performance | Google Benchmark | Hot path modifications |
+| Regression | Custom | Every bug fix |
+
+### Running Tests
+
+```bash
+# All tests
+ctest --output-on-failure
+
+# Specific test
+./build/test/Release/obs-audio-resampler-test.exe
+
+# With memory checking (Linux)
+valgrind --leak-check=full ./build/test/Release/obs-test
+```
+
+### Audio Testing Standards
+
+- **Sample-accurate**: Compare output buffers sample-by-sample
+- **Golden master**: Reference outputs stored in `test/data/audio/`
+- **Property-based**: Use `rapidcheck` for parameter space exploration
+- **Real-time stress**: Run at 48kHz/96kHz with 128-4096 block sizes
+
+---
+
+## Commit & PR Conventions
+
+### Commit Messages (Conventional Commits)
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `refactor`: Code change neither fixing nor adding features
+- `perf`: Performance improvement
+- `docs`: Documentation only
+- `test`: Test additions/modifications
+- `build`: Build system changes
+- `ci`: CI configuration changes
+- `chore`: Maintenance, no functional change
+
+**Examples:**
+```
+feat(win-asio): add dynamic COM driver discovery via registry
+
+fix(obs-vst3): resolve parameter automation race condition
+
+perf(audio): optimize ring buffer with cache-line padding
+```
+
+### PR Titles
+
+Same format as commits. PR title = squash commit message.
+
+### Sign-Off
+
+All commits must be signed (`git commit -s`):
+```
+Signed-off-by: Your Name <you@example.com>
+```
+
+---
+
+## AI-Assisted Development
+
+We **welcome** AI-assisted contributions with the same standards as human-written code.
+
+### Guidelines for AI-Assisted Work
+
+1. **You are responsible** — Review every line. The AI is a tool, not an author.
+2. **Disclose AI use** — Add `AI-Assisted: <tool/model>` in PR description
+3. **No hallucinated APIs** — Verify every function, constant, and type exists
+4. **No cargo-cult patterns** — Understand *why* the code works
+5. **Test thoroughly** — AI generates plausible bugs; catch them
+
+### Example PR Description
+
+```markdown
+## Summary
+Add lock-free SPSC ring buffer for ASIO audio transport.
+
+## AI-Assisted
+GitHub Copilot (Claude 3.5) — initial implementation + tests
+
+## Testing
+- Unit tests: 15 new tests covering push/pop/overflow/underflow
+- Stress test: 10M iterations at 48kHz, zero failures
+- Benchmark: 2.3ns/op (vs 12ns/op for mutex-based queue)
+
+## Checklist
+- [ ] Real-time safe (no allocations, no locks)
+- [ ] Cache-line aligned (verified with `perf stat`)
+- [ ] Power-of-2 capacity for branchless modulo
+- [ ] Atomic operations use correct memory ordering
+```
+
+---
+
+## Review Process
+
+### Reviewer Responsibilities
+
+1. **Verify correctness** — Logic, edge cases, error handling
+2. **Check performance** — Allocations, lock contention, cache behavior
+3. **Validate architecture** — Fits module boundaries, no layering violations
+4. **Confirm tests** — Coverage, determinism, meaningful assertions
+5. **Read for maintainability** — Names, comments, complexity
+
+### Author Responsibilities
+
+1. **Self-review first** — Catch obvious issues before requesting review
+2. **Respond promptly** — Address comments within 24 hours
+3. **Don't defend bad code** — If reviewer is right, fix it
+4. **Explain non-obvious choices** — Comments in code > PR discussion
+
+### Review Timeline
+
+- **First review**: Within 48 hours of PR ready
+- **Follow-up**: Within 24 hours of author response
+- **Merge**: After 2 approvals (1 for trivial fixes), all CI green
+
+---
+
+## Architecture Decisions
+
+### When to Write an ADR
+
+Create an Architecture Decision Record (`docs/adr/NNNN-title.md`) for:
+- New plugin or subsystem
+- Cross-cutting concern (threading, memory, logging)
+- External dependency adoption
+- Breaking API changes
+
+### ADR Template
+
+```markdown
+# ADR NNNN: Title
+
+## Status
+Proposed | Accepted | Superseded
+
+## Context
+What problem are we solving?
+
+## Decision
+What are we doing?
+
+## Consequences
+### Positive
+### Negative
+### Risks
+
+## Alternatives Considered
+1. ...
+2. ...
+
+## References
+- Links to issues, PRs, external docs
+```
+
+---
+
+## Getting Help
+
+- **Technical questions**: GitHub Discussions > Q&A
+- **Bug reports**: GitHub Issues (use templates)
+- **Security issues**: Email security@obs-community.org
+- **Governance**: GitHub Discussions > Governance
+
+---
+
+## Recognition
+
+All contributors (code, docs, tests, reviews, triage, ideas) are listed in `AUTHORS` and release notes. No distinction between "core" and "community"—there is only the community.
+
+---
+
+*Last updated: 2024*
+*This document evolves—propose changes via PR.*
