@@ -67,7 +67,7 @@ include(cmake/feature-idian-playground.cmake)
 configure_file(cmake/templates/ui-config.h.in ui-config.h)
 
 target_sources(
-  obs-studio
+  obs-community-studio
   PRIVATE obs-main.cpp OBSStudioAPI.cpp OBSStudioAPI.hpp OBSApp.cpp OBSApp.hpp OBSApp_Themes.cpp ui-config.h
 )
 
