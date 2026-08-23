@@ -1,24 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
-  <id>com.obsproject.Studio</id>
-  <launchable type="desktop-id">com.obsproject.Studio.desktop</launchable>
+  <id>com.obscommunity.Studio</id>
+  <launchable type="desktop-id">com.obscommunity.Studio.desktop</launchable>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>GPL-2.0-or-later</project_license>
-  <name>OBS Studio</name>
-  <developer id="com.obsproject">
-    <name>OBS Project</name>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>OBS Community Studio</name>
+  <developer id="com.obscommunity">
+    <name>OBS Community</name>
   </developer>
-  <summary>Live stream and record videos</summary>
+  <summary>Live stream and record videos - Community-first independent fork</summary>
   <description>
-    <p>Free and open source software for video capturing, recording, and live streaming.</p>
+    <p>Community-first independent OBS Studio hard fork licensed under GPLv3+.</p>
     <p>Features:</p>
     <ul>
       <li>High performance real time video/audio capturing and mixing. Create scenes made up of multiple sources including window captures, images, text, browser windows, webcams, capture cards and more.</li>
       <li>Set up an unlimited number of scenes you can switch between seamlessly via custom transitions.</li>
-      <li>Intuitive audio mixer with per-source filters such as noise gate, noise suppression, and gain. Take full control with VST plugin support.</li>
+      <li>Intuitive audio mixer with per-source filters such as noise gate, noise suppression, and gain. Native ASIO capture and VST3 plugin support.</li>
       <li>Powerful and easy to use configuration options. Add new Sources, duplicate existing ones, and adjust their properties effortlessly.</li>
       <li>Streamlined Settings panel gives you access to a wide array of configuration options to tweak every aspect of your broadcast or recording.</li>
       <li>Modular 'Dock' UI allows you to rearrange the layout exactly as you like. You can even pop out each individual Dock to its own window.</li>
+    </ul>
+    <p>Pro-Audio Features:</p>
+    <ul>
+      <li>Native Windows ASIO capture with dynamic COM driver discovery and lock-free audio transport</li>
+      <li>Native VST3 plugin host with full parameter automation and GUI embedding</li>
+      <li>Multi-channel audio support (up to 64 channels)</li>
+      <li>Planar 32-bit float internal format matching professional DAWs</li>
     </ul>
     <p>Create Professional Productions:</p>
     <ul>
@@ -28,11 +35,11 @@
       <li>Get a high level view of your production using the Multiview. Monitor 8 different scenes and easily cue or transition to any of them with merely a single or double click.</li>
     </ul>
   </description>
-  <url type="homepage">https://obsproject.com</url>
-  <url type="bugtracker">https://github.com/obsproject/obs-studio/issues</url>
-  <url type="donation">https://obsproject.com/contribute</url>
-  <url type="translate">https://crowdin.com/project/obs-studio</url>
-  <url type="vcs-browser">https://github.com/obsproject/obs-studio</url>
+  <url type="homepage">https://github.com/obs-community/obs-community-studio</url>
+  <url type="bugtracker">https://github.com/obs-community/obs-community-studio/issues</url>
+  <url type="donation">https://github.com/sponsors/obs-community</url>
+  <url type="translate">https://crowdin.com/project/obs-community-studio</url>
+  <url type="vcs-browser">https://github.com/obs-community/obs-community-studio</url>
 
   <recommends>
     <internet>always</internet>
@@ -47,8 +54,8 @@
 
   <screenshots>
     <screenshot type="default">
-      <image>https://obsproject.com/assets/images/OBSDemoApp301Flathub.png</image>
-      <caption>The OBS Studio window showing a card game, the project website, a video, and a purple rectangle</caption>
+      <image>https://github.com/obs-community/obs-community-studio/assets/screenshot.png</image>
+      <caption>The OBS Community Studio window showing a broadcast setup</caption>
     </screenshot>
   </screenshots>
 
@@ -60,10 +67,10 @@
 
   <releases>
     <release version="@OBS_VERSION@" date="@APPDATA_RELEASE_DATE@">
-      <url type="details">https://github.com/obsproject/obs-studio/releases/tag/@OBS_VERSION@</url>
+      <url type="details">https://github.com/obs-community/obs-community-studio/releases/tag/@OBS_VERSION@</url>
     </release>
   </releases>
   <custom>
-    <value key="flathub::manifest">https://github.com/obsproject/obs-studio/blob/@GIT_HASH@/build-aux/</value>
+    <value key="flathub::manifest">https://github.com/obs-community/obs-community-studio/blob/@GIT_HASH@/build-aux/</value>
   </custom>
 </component>
