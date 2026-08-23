@@ -35,6 +35,7 @@
 !README.md
 !MANIFESTO.md
 !CODE_OF_CONDUCT.md
+!FORK_INITIALIZATION_SUMMARY.md
 
 # Exclude lock files
 *.lock.json
