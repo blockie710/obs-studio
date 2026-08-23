@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 3.28...3.30)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/common/bootstrap.cmake" NO_POLICY_SCOPE)
 
-project(obs-studio VERSION ${OBS_VERSION_CANONICAL})
+# Community-First Independent OBS Studio Hard Fork
+# License: GNU GPLv3 (or later)
+project(obs-community-studio VERSION ${OBS_VERSION_CANONICAL}
+  DESCRIPTION "Community-First Independent OBS Studio Hard Fork"
+  HOMEPAGE_URL "https://github.com/obs-community/obs-community-studio"
+  LANGUAGES C CXX)
 
 if(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
   include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/windows/architecture.cmake")
