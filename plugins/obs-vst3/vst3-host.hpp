@@ -16,8 +16,11 @@
 #include <vector>
 #include <memory>
 #include <mutex>
+#include <chrono>
 
 #include "vst3-plugin.hpp"
+#include "vst3-controller.hpp"
+#include "vst3-ui.hpp"
 
 namespace obs_vst3 {
 
@@ -38,14 +41,15 @@ struct VST3HostContext {
 
     // Parameter automation
     struct AutomatedParam {
-        uint32_t param_id;
+        uint32_t param_id = 0;
+        std::string param_name;
         obs_data_t* automation_data = nullptr;
         size_t automation_index = 0;
     };
     std::vector<AutomatedParam> automated_params;
 
     // GUI
-    void* editor_window = nullptr;
+    std::unique_ptr<VST3EditorWidget> editor_widget;
     bool editor_open = false;
 
     // Statistics

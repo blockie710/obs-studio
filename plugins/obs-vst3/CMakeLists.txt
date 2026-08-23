@@ -7,36 +7,54 @@ if(NOT ENABLE_VST3)
   return()
 endif()
 
-# VST3 SDK is header-only (or provided via Steinberg VST3 SDK)
-# We'll use the VST3 SDK headers - require VST3_SDK_PATH or find_package
+# VST3 SDK Detection
+# Try to find VST3 SDK via:
+# 1. VST3_SDK_PATH environment variable / CMake cache
+# 2. Steinberg VST3 SDK package (if available via find_package)
+# 3. Common install locations
 
-find_package(Qt6 REQUIRED Widgets)
+set(VST3_SDK_PATH "" CACHE PATH "Path to Steinberg VST3 SDK (pluginterfaces/)")
+set(VST3_SDK_ROOT "" CACHE PATH "Root of VST3 SDK (for public.sdk)")
 
-# Try to find VST3 SDK
-set(VST3_SDK_PATH "" CACHE PATH "Path to Steinberg VST3 SDK")
+# Check if path is valid
 if(VST3_SDK_PATH AND EXISTS "${VST3_SDK_PATH}/pluginterfaces/vst2.x/aeffect.h")
-  message(STATUS "Found VST3 SDK at: ${VST3_SDK_PATH}")
+  message(STATUS "VST3 SDK found at: ${VST3_SDK_PATH}")
+  set(VST3_SDK_FOUND TRUE)
+elseif(VST3_SDK_ROOT AND EXISTS "${VST3_SDK_ROOT}/pluginterfaces/vst2.x/aeffect.h")
+  set(VST3_SDK_PATH "${VST3_SDK_ROOT}")
+  message(STATUS "VST3 SDK found at: ${VST3_SDK_PATH}")
+  set(VST3_SDK_FOUND TRUE)
 else()
-  # Try common locations
+  # Search common locations
   set(VST3_COMMON_PATHS
     "$ENV{VST3_SDK}"
     "C:/Program Files/Steinberg/VST3 SDK"
     "C:/VST3 SDK"
     "/usr/local/include/vst3"
     "/usr/include/vst3"
+    "/opt/vst3sdk"
   )
+
   foreach(path ${VST3_COMMON_PATHS})
     if(EXISTS "${path}/pluginterfaces/vst2.x/aeffect.h")
       set(VST3_SDK_PATH "${path}" CACHE PATH "Path to Steinberg VST3 SDK" FORCE)
       message(STATUS "Found VST3 SDK at: ${path}")
+      set(VST3_SDK_FOUND TRUE)
       break()
     endif()
   endforeach()
 endif()
 
-if(NOT VST3_SDK_PATH)
-  message(WARNING "VST3 SDK not found. VST3 plugin host will be built with stub implementation.")
+if(NOT VST3_SDK_FOUND)
+  message(WARNING "VST3 SDK not found. obs-vst3 will build with stub implementation.")
+  message(WARNING "Set VST3_SDK_PATH to enable full VST3 support.")
+  add_definitions(-DVST3_STUB_IMPL=1)
+else()
+  message(STATUS "VST3 SDK: ${VST3_SDK_PATH}")
+  add_definitions(-DHAVE_VST3_SDK=1)
 endif()
+
+find_package(Qt6 REQUIRED Widgets)
 
 add_library(obs-vst3 MODULE)
 add_library(OBS::vst3 ALIAS obs-vst3)
@@ -55,15 +73,15 @@ target_sources(
     obs-vst3.cpp
 )
 
-if(VST3_SDK_PATH)
+target_include_directories(obs-vst3 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+if(VST3_SDK_FOUND)
   target_include_directories(obs-vst3 PRIVATE
     "${VST3_SDK_PATH}/pluginterfaces"
     "${VST3_SDK_PATH}/public.sdk/source/vst"
     "${VST3_SDK_PATH}/public.sdk/source/common"
   )
 endif()
-
-target_include_directories(obs-vst3 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(
   obs-vst3
@@ -81,7 +99,7 @@ if(OS_WINDOWS)
 elseif(OS_LINUX OR OS_FREEBSD OR OS_OPENBSD)
   target_link_libraries(obs-vst3 PRIVATE dl pthread)
 elseif(OS_MACOS)
-  target_link_libraries(obs-vst3 PRIVATE "-framework Cocoa" "-framework Foundation")
+  target_link_libraries(obs-vst3 PRIVATE "-framework Cocoa" "-framework Foundation" "-framework CoreAudio")
 endif()
 
 set_target_properties_obs(
@@ -99,3 +117,9 @@ target_compile_definitions(obs-vst3 PRIVATE
   OBS_PLUGIN_AUTHOR="Community Contributors"
   OBS_PLUGIN_VERSION="${OBS_VERSION_CANONICAL}"
 )
+
+# Version resource for Windows
+if(OS_WINDOWS)
+  configure_file(cmake/windows/obs-module.rc.in obs-vst3.rc @ONLY)
+  target_sources(obs-vst3 PRIVATE obs-vst3.rc)
+endif()

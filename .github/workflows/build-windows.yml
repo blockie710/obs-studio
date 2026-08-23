@@ -1,0 +1,215 @@
+name: Build Windows (MSVC)
+
+on:
+  push:
+    branches: [master, main]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    branches: [master, main]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+  VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+jobs:
+  build:
+    name: Build Windows x64
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ env.VCPKG_ROOT }}'
+          vcpkgGitCommitId: 'd6a2ec1a90781c1b8b3c4e5f6a7b8c9d0e1f2a3b'
+          vcpkgArguments: 'qt6-windows:x64-windows ffmpeg:x64-windows curl:x64-windows mbedtls:x64-windows nlohmann-json:x64-windows blake2:x64-windows'
+          appendedCacheKey: 'obs-community-studio-${{ hashFiles(''CMakeLists.txt'', ''cmake/**'') }}'
+
+      - name: Configure CMake
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cmake -B build -S . ^
+            -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
+            -DENABLE_ASIO=ON ^
+            -DENABLE_VST3=ON ^
+            -DENABLE_FRONTEND=ON ^
+            -DCMAKE_PREFIX_PATH=%VCPKG_ROOT%\installed\x64-windows ^
+            -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
+            -DVST3_SDK_PATH="C:\VST3 SDK" ^
+            -G "Visual Studio 17 2022" -A x64
+
+      - name: Build
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cmake --build build --config %BUILD_TYPE% --target obs-community-studio win-asio obs-vst3 --parallel
+
+      - name: Run tests
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cd build
+          ctest --config %BUILD_TYPE% --output-on-failure --parallel
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: obs-community-studio-windows-${{ github.sha }}
+          path: |
+            build/rundir/Release/bin/obs64.exe
+            build/rundir/Release/bin/*.dll
+            build/rundir/Release/data/
+          retention-days: 30
+
+      - name: Upload plugin artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: obs-plugins-windows-${{ github.sha }}
+          path: |
+            build/rundir/Release/obs-plugins/win-asio*.dll
+            build/rundir/Release/obs-plugins/obs-vst3*.dll
+          retention-days: 30
+
+  build_debug:
+    name: Build Windows x64 (Debug)
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ env.VCPKG_ROOT }}'
+          vcpkgGitCommitId: 'd6a2ec1a90781c1b8b3c4e5f6a7b8c9d0e1f2a3b'
+          vcpkgArguments: 'qt6-windows:x64-windows ffmpeg:x64-windows curl:x64-windows mbedtls:x64-windows nlohmann-json:x64-windows blake2:x64-windows'
+          appendedCacheKey: 'obs-community-studio-debug-${{ hashFiles(''CMakeLists.txt'', ''cmake/**'') }}'
+
+      - name: Configure CMake (Debug)
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cmake -B build-debug -S . ^
+            -DCMAKE_BUILD_TYPE=Debug ^
+            -DENABLE_ASIO=ON ^
+            -DENABLE_VST3=ON ^
+            -DENABLE_FRONTEND=ON ^
+            -DCMAKE_PREFIX_PATH=%VCPKG_ROOT%\installed\x64-windows ^
+            -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
+            -DVST3_SDK_PATH="C:\VST3 SDK" ^
+            -G "Visual Studio 17 2022" -A x64
+
+      - name: Build (Debug)
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cmake --build build-debug --config Debug --target obs-community-studio win-asio obs-vst3 --parallel
+
+      - name: Upload debug artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: obs-community-studio-windows-debug-${{ github.sha }}
+          path: |
+            build-debug/rundir/Debug/bin/obs64.exe
+            build-debug/rundir/Debug/bin/*.dll
+          retention-days: 7
+
+  static_analysis:
+    name: Static Analysis (clang-tidy)
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup LLVM
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "18"
+          directory: "llvm"
+
+      - name: Configure CMake for analysis
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cmake -B build-analysis -S . ^
+            -DCMAKE_CXX_CLANG_TIDY="%GITHUB_WORKSPACE%\llvm\bin\clang-tidy.exe;-checks=*,-google-readability-todo,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers" ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DENABLE_ASIO=ON ^
+            -DENABLE_VST3=ON ^
+            -G "Visual Studio 17 2022" -A x64
+
+      - name: Run clang-tidy
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cmake --build build-analysis --config Release --target obs-community-studio win-asio obs-vst3 2>&1 | tee clang-tidy-output.txt
+
+      - name: Upload clang-tidy results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: clang-tidy-results-${{ github.sha }}
+          path: clang-tidy-output.txt
+          retention-days: 30
+
+  # Validate CMake configure on Linux (cross-platform sanity)
+  cmake_linux:
+    name: CMake Configure Linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build pkg-config \
+            libqt6widgets6 libqt6core6 libqt6gui6 \
+            libffmpeg-dev libcurl4-openssl-dev \
+            nlohmann-json3-dev
+
+      - name: Configure CMake (Linux)
+        run: |
+          cmake -B build-linux -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_ASIO=OFF \
+            -DENABLE_VST3=ON \
+            -DENABLE_FRONTEND=ON \
+            -G Ninja
+
+      - name: Verify targets
+        run: |
+          cmake --build build-linux --target help | grep -E "(obs-community-studio|obs-vst3)"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true

@@ -146,39 +146,40 @@ public:
     ~VST3Plugin();
 
     // Load plugin from .vst3 bundle / DLL
-    bool Load(const std::string& path);
-    void Unload();
+    bool load(const std::string& path);
+    void unload();
 
     // Processing
-    bool Prepare(double sample_rate, int max_block_size, int num_inputs, int num_outputs);
-    bool Process(float** inputs, float** outputs, int num_frames);
-    void SetActive(bool active);
+    bool prepare(double sample_rate, int max_block_size, int num_inputs, int num_outputs);
+    bool process(float** inputs, float** outputs, int num_frames);
+    void setActive(bool active);
+    bool isLoaded() const { return loaded_; }
 
     // Parameters
-    std::vector<ParameterInfo> GetParameters() const;
-    float GetParameter(uint32_t param_id) const;
-    bool SetParameter(uint32_t param_id, float value);
-    int32_t GetParameterIndex(uint32_t param_id) const;
+    std::vector<ParameterInfo> getParameters() const;
+    float getParameter(uint32_t param_id) const;
+    bool setParameter(uint32_t param_id, float value);
+    int32_t getParameterIndex(uint32_t param_id) const;
 
     // Programs
-    int32_t GetProgramCount() const;
-    std::string GetProgramName(int32_t index) const;
-    bool SetProgram(int32_t index);
+    int32_t getProgramCount() const;
+    std::string getProgramName(int32_t index) const;
+    bool setProgram(int32_t index);
 
     // State
-    bool GetState(std::vector<uint8_t>& state) const;
-    bool SetState(const std::vector<uint8_t>& state);
+    bool getState(std::vector<uint8_t>& state) const;
+    bool setState(const std::vector<uint8_t>& state);
 
     // GUI
-    bool HasEditor() const;
-    void* CreateEditor(void* parent_window);
-    void DestroyEditor();
-    bool GetEditorSize(int& width, int& height) const;
+    bool hasEditor() const;
+    void* createEditor(void* parent_window);
+    void destroyEditor();
+    bool getEditorSize(int& width, int& height) const;
 
     // Info
-    std::string GetName() const;
-    std::string GetVendor() const;
-    std::string GetVersion() const;
+    std::string getName() const;
+    std::string getVendor() const;
+    std::string getVersion() const;
     std::string GetPath() const { return path_; }
     bool IsLoaded() const { return loaded_; }
 
@@ -210,14 +211,19 @@ private:
     int num_outputs_ = 2;
     bool active_ = false;
 
+    // Processing buffers
+    std::vector<float*> input_ptrs_;
+    std::vector<float*> output_ptrs_;
+
     // Parameter cache
     mutable std::mutex param_mutex_;
     std::vector<ParameterInfo> cached_parameters_;
 
     // Helper methods
-    bool InitializeComponent();
-    void TerminateComponent();
-    bool CreateView(void* parent);
+    bool initializeComponent();
+    void terminateComponent();
+    bool createView(void* parent);
+    void cacheParameters();
 };
 
 } // namespace obs_vst3
