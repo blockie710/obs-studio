@@ -25,6 +25,11 @@ jobs:
     name: Build Windows x64
     runs-on: windows-latest
     timeout-minutes: 90
+    strategy:
+      matrix:
+        vs_version: ["17 2022"]
+        arch: [x64]
+      fail-fast: false
 
     steps:
       - name: Checkout repository
@@ -53,7 +58,7 @@ jobs:
             -DCMAKE_PREFIX_PATH=%VCPKG_ROOT%\installed\x64-windows ^
             -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
             -DVST3_SDK_PATH="%VST3_SDK_PATH%" ^
-            -G "Visual Studio 17 2022" -A x64
+            -G "Visual Studio ${{ matrix.vs_version }}" -A ${{ matrix.arch }}
 
       - name: Build
         shell: cmd
@@ -71,7 +76,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: obs-community-studio-windows-${{ github.sha }}
+          name: obs-community-studio-windows-${{ github.sha }}-${{ matrix.arch }}
           path: |
             build/rundir/Release/bin/obs64.exe
             build/rundir/Release/bin/*.dll
@@ -81,60 +86,65 @@ jobs:
       - name: Upload plugin artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: obs-plugins-windows-${{ github.sha }}
+          name: obs-plugins-windows-${{ github.sha }}-${{ matrix.arch }}
           path: |
             build/rundir/Release/obs-plugins/win-asio*.dll
             build/rundir/Release/obs-plugins/obs-vst3*.dll
           retention-days: 30
 
   build_debug:
-    name: Build Windows x64 (Debug)
-    runs-on: windows-latest
-    timeout-minutes: 90
+      name: Build Windows x64 (Debug)
+      runs-on: windows-latest
+      timeout-minutes: 90
+      strategy:
+        matrix:
+          vs_version: ["17 2022"]
+          arch: [x64]
+        fail-fast: false
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+          with:
+            submodules: recursive
+            fetch-depth: 0
 
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgDirectory: '${{ env.VCPKG_ROOT }}'
-          vcpkgGitCommitId: 'd6a2ec1a90781c1b8b3c4e5f6a7b8c9d0e1f2a3b'
-          vcpkgArguments: 'qt6-windows:x64-windows ffmpeg:x64-windows curl:x64-windows mbedtls:x64-windows nlohmann-json:x64-windows blake2:x64-windows'
-          appendedCacheKey: 'obs-community-studio-debug-${{ hashFiles(''CMakeLists.txt'', ''cmake/**'') }}'
+        - name: Setup vcpkg
+          uses: lukka/run-vcpkg@v12
+          with:
+            vcpkgDirectory: '${{ env.VCPKG_ROOT }}'
+            vcpkgGitCommitId: 'latest'
+            vcpkgArguments: 'qt6-windows:x64-windows ffmpeg:x64-windows curl:x64-windows mbedtls:x64-windows nlohmann-json:x64-windows blake2:x64-windows'
+            appendedCacheKey: 'obs-community-studio-debug-${{ hashFiles(''CMakeLists.txt'', ''cmake/**'') }}'
 
-      - name: Configure CMake (Debug)
-        shell: cmd
-        run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-          cmake -B build-debug -S . ^
-            -DCMAKE_BUILD_TYPE=Debug ^
-            -DENABLE_ASIO=ON ^
-            -DENABLE_VST3=ON ^
-            -DENABLE_FRONTEND=ON ^
-            -DCMAKE_PREFIX_PATH=%VCPKG_ROOT%\installed\x64-windows ^
-            -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
-            -DVST3_SDK_PATH="%VST3_SDK_PATH%" ^
-            -G "Visual Studio 17 2022" -A x64
+        - name: Configure CMake (Debug)
+          shell: cmd
+          run: |
+            call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+            cmake -B build-debug -S . ^
+              -DCMAKE_BUILD_TYPE=Debug ^
+              -DENABLE_ASIO=ON ^
+              -DENABLE_VST3=ON ^
+              -DENABLE_FRONTEND=ON ^
+              -DCMAKE_PREFIX_PATH=%VCPKG_ROOT%\installed\x64-windows ^
+              -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
+              -DVST3_SDK_PATH="%VST3_SDK_PATH%" ^
+              -G "Visual Studio ${{ matrix.vs_version }}" -A ${{ matrix.arch }}
 
-      - name: Build (Debug)
-        shell: cmd
-        run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-          cmake --build build-debug --config Debug --target obs-community-studio win-asio obs-vst3 --parallel
+        - name: Build (Debug)
+          shell: cmd
+          run: |
+            call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+            cmake --build build-debug --config Debug --target obs-community-studio win-asio obs-vst3 --parallel
 
-      - name: Upload debug artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: obs-community-studio-windows-debug-${{ github.sha }}
-          path: |
-            build-debug/rundir/Debug/bin/obs64.exe
-            build-debug/rundir/Debug/bin/*.dll
-          retention-days: 7
+        - name: Upload debug artifacts
+          uses: actions/upload-artifact@v4
+          with:
+            name: obs-community-studio-windows-debug-${{ github.sha }}-${{ matrix.arch }}
+            path: |
+              build-debug/rundir/Debug/bin/obs64.exe
+              build-debug/rundir/Debug/bin/*.dll
+            retention-days: 7
 
   static_analysis:
     name: Static Analysis (clang-tidy)
@@ -210,6 +220,10 @@ jobs:
       - name: Verify targets
         run: |
           cmake --build build-linux --target help | grep -E "(obs-community-studio|obs-vst3)"
+
+      - name: Build (Linux)
+        run: |
+          cmake --build build-linux --config Release --target obs-community-studio obs-vst3 --parallel
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

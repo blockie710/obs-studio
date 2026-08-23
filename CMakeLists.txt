@@ -41,6 +41,10 @@ add_subdirectory(plugins)
 
 add_subdirectory(test/test-input)
 
+if(ENABLE_ASIO OR ENABLE_VST3)
+    add_subdirectory(test/audio)
+endif()
+
 add_subdirectory(frontend)
 
 message_configuration()
