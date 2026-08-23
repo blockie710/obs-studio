@@ -5,10 +5,10 @@ if(NOT TARGET OBS::qt-slider-ignorewheel)
   )
 endif()
 
-target_link_libraries(obs-studio PRIVATE OBS::qt-slider-ignorewheel)
+target_link_libraries(nexus-broadcast-studio PRIVATE OBS::qt-slider-ignorewheel)
 
 target_sources(
-  obs-studio
+  nexus-broadcast-studio
   PRIVATE
     components/AbsoluteSlider.cpp
     components/AbsoluteSlider.hpp

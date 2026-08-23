@@ -1,1 +1,1 @@
-target_sources(obs-studio PRIVATE docks/OBSDock.cpp docks/OBSDock.hpp)
+1|target_sources(librecast-studio PRIVATE docks/OBSDock.cpp docks/OBSDock.hpp)

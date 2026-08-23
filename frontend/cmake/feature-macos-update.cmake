@@ -7,7 +7,7 @@ if(NOT TARGET OBS::blake2)
 endif()
 
 target_sources(
-  obs-studio
+  nexus-broadcast-studio
   PRIVATE
     utility/WhatsNewBrowserInitThread.cpp
     utility/WhatsNewBrowserInitThread.hpp
@@ -22,6 +22,6 @@ target_sources(
 )
 
 target_link_libraries(
-  obs-studio
+  nexus-broadcast-studio
   PRIVATE "$<LINK_LIBRARY:FRAMEWORK,Security.framework>" nlohmann_json::nlohmann_json OBS::blake2
 )

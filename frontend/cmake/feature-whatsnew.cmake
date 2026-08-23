@@ -15,10 +15,10 @@ if(ENABLE_WHATSNEW AND TARGET OBS::browser-panels)
       add_subdirectory("${CMAKE_SOURCE_DIR}/deps/blake2" "${CMAKE_BINARY_DIR}/deps/blake2")
     endif()
 
-    target_link_libraries(obs-studio PRIVATE MbedTLS::mbedtls nlohmann_json::nlohmann_json OBS::blake2)
+    target_link_libraries(nexus-broadcast-studio PRIVATE MbedTLS::mbedtls nlohmann_json::nlohmann_json OBS::blake2)
 
     target_sources(
-      obs-studio
+      nexus-broadcast-studio
       PRIVATE
         utility/WhatsNewBrowserInitThread.cpp
         utility/WhatsNewBrowserInitThread.hpp
@@ -32,5 +32,5 @@ if(ENABLE_WHATSNEW AND TARGET OBS::browser-panels)
     )
   endif()
 
-  target_enable_feature(obs-studio "What's New panel" WHATSNEW_ENABLED)
+  target_enable_feature(nexus-broadcast-studio "What's New panel" WHATSNEW_ENABLED)
 endif()

@@ -1,25 +1,25 @@
 target_sources(
-  obs-studio
+  nexus-broadcast-studio
   PRIVATE
     utility/CrashHandler_FreeBSD.cpp
     utility/NativeEventFilter.cpp
     utility/platform-x11.cpp
     utility/system-info-posix.cpp
 )
-target_compile_definitions(obs-studio PRIVATE OBS_INSTALL_PREFIX="${OBS_INSTALL_PREFIX}")
-target_link_libraries(obs-studio PRIVATE Qt::DBus procstat)
+target_compile_definitions(nexus-broadcast-studio PRIVATE OBS_INSTALL_PREFIX="${OBS_INSTALL_PREFIX}")
+target_link_libraries(nexus-broadcast-studio PRIVATE Qt::DBus procstat)
 
 if(Qt6_VERSION AND Qt6_VERSION VERSION_LESS "6.9.0")
-  target_link_libraries(obs-studio PRIVATE Qt::GuiPrivate)
+  target_link_libraries(nexus-broadcast-studio PRIVATE Qt::GuiPrivate)
 endif()
 
 find_package(Libpci REQUIRED)
-target_link_libraries(obs-studio PRIVATE Libpci::pci)
+target_link_libraries(nexus-broadcast-studio PRIVATE Libpci::pci)
 
 if(TARGET OBS::python)
   find_package(Python REQUIRED COMPONENTS Interpreter Development)
-  target_link_libraries(obs-studio PRIVATE Python::Python)
-  target_link_options(obs-studio PRIVATE LINKER:-no-as-needed)
+  target_link_libraries(nexus-broadcast-studio PRIVATE Python::Python)
+  target_link_options(nexus-broadcast-studio PRIVATE LINKER:-no-as-needed)
 endif()
 
 configure_file(cmake/linux/com.obsproject.Studio.metainfo.xml.in com.obsproject.Studio.metainfo.xml)

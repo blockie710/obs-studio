@@ -102,3 +102,8 @@ struct ASIOSource {
     static int32_t ASIO_CALLING_CONVENTION asioMessageThunk(int32_t selector, int32_t value,
                                                               void* message, double* opt);
 };
+
+// Declare the source info for external linkage
+extern const struct obs_source_info asio_source_info;
+
+} // namespace win_asio

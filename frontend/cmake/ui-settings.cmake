@@ -1,5 +1,5 @@
 target_sources(
-  obs-studio
+  nexus-broadcast-studio
   PRIVATE
     settings/OBSBasicSettings_A11y.cpp
     settings/OBSBasicSettings_Appearance.cpp

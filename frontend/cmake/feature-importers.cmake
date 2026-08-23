@@ -1,5 +1,5 @@
 target_sources(
-  obs-studio
+  nexus-broadcast-studio
   PRIVATE
     importer/ImporterEntryPathItemDelegate.cpp
     importer/ImporterEntryPathItemDelegate.hpp

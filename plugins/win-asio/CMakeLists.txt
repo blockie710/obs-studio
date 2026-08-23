@@ -73,5 +73,8 @@ if(MSVC)
         /Zc:throwingNew
         /permissive-
         /d2FH4-
+        /wd4244
+        /wd4267
+        /wd4996
     )
 endif()

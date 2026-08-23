@@ -1,7 +1,7 @@
 include(cmake/feature-sparkle.cmake)
 
 target_sources(
-  obs-studio
+  nexus-broadcast-studio
   PRIVATE
     dialogs/OBSPermissions.cpp
     dialogs/OBSPermissions.hpp
@@ -11,7 +11,7 @@ target_sources(
     utility/platform-osx.mm
     utility/system-info-macos.mm
 )
-target_compile_options(obs-studio PRIVATE -Wno-quoted-include-in-framework-header -Wno-comma)
+target_compile_options(nexus-broadcast-studio PRIVATE -Wno-quoted-include-in-framework-header -Wno-comma)
 
 list(APPEND _frontend_objcxx_compile_options -fobjc-arc -fmodules -fcxx-modules)
 
@@ -22,11 +22,11 @@ set_property(
 )
 
 if(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 14.0.3)
-  target_compile_options(obs-studio PRIVATE -Wno-error=unqualified-std-cast-call)
+  target_compile_options(nexus-broadcast-studio PRIVATE -Wno-error=unqualified-std-cast-call)
 endif()
 
 target_link_libraries(
-  obs-studio
+  nexus-broadcast-studio
   PRIVATE
     "$<LINK_LIBRARY:FRAMEWORK,AppKit.framework>"
     "$<LINK_LIBRARY:FRAMEWORK,ApplicationServices.framework>"

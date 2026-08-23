@@ -1,5 +1,5 @@
 target_sources(
-  obs-studio
+  nexus-broadcast-studio
   PRIVATE
     utility/AdvancedOutput.cpp
     utility/AdvancedOutput.hpp

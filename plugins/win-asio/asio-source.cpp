@@ -35,6 +35,9 @@
 #include <thread>
 #include <vector>
 #include <string>
+#include <thread>
+#include <vector>
+#include <string>
 
 #define OPT_DEVICE_CLSID "device_clsid"
 #define OPT_DEVICE_NAME "device_name"
@@ -57,44 +60,50 @@ static void asio_source_defaults(obs_data_t* settings);
 static void asio_source_activate(void* data);
 static void asio_source_deactivate(void* data);
 
-static const struct obs_source_info asio_source_info = {
+const struct obs_source_info asio_source_info = {
     "asio_input_capture",
     OBS_SOURCE_TYPE_INPUT,
     OBS_SOURCE_AUDIO,
     asio_source_getname,
     asio_source_create,
     asio_source_destroy,
-    asio_source_update,
-    asio_source_properties,
+    nullptr,  // get_width
+    nullptr,  // get_height
     asio_source_defaults,
+    asio_source_properties,
+    asio_source_update,
     asio_source_activate,
     asio_source_deactivate,
-    0,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
+    nullptr,  // show
+    nullptr,  // hide
+    nullptr,  // video_tick
+    nullptr,  // video_render
+    nullptr,  // filter_video
+    nullptr,  // filter_audio
+    nullptr,  // enum_active_sources
+    nullptr,  // save
+    nullptr,  // load
+    nullptr,  // mouse_click
+    nullptr,  // mouse_move
+    nullptr,  // mouse_wheel
+    nullptr,  // focus
+    nullptr,  // key_click
+    nullptr,  // filter_remove
+    nullptr,  // filter_update
+    nullptr,  // get_media_playlist
+    nullptr,  // enum_all_sources
+    nullptr,  // get_width (second)
+    nullptr,  // get_height (second)
+    nullptr,  // type_data
+    nullptr,  // free_type_data
+    nullptr,  // audio_render
+    nullptr,  // audio_mix
+    OBS_ICON_TYPE_UNKNOWN,  // icon_type
+    nullptr,  // media_play_pause
+    nullptr,  // media_restart
+    nullptr,  // media_stop
+    nullptr,  // media_next
 };
-
-OBS_DECLARE_MODULE()
-OBS_MODULE_USE_DEFAULT_LOCALE("win-asio", "en-US")
-
-bool obs_module_load(void) {
-    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    obs_register_source(&asio_source_info);
-    blog(LOG_INFO, "[win-asio] ASIO audio capture plugin loaded");
-    return true;
-}
-
-void obs_module_unload(void) {
-    CoUninitialize();
-    blog(LOG_INFO, "[win-asio] ASIO audio capture plugin unloaded");
-}
 
 ASIOSource::ASIOSource(obs_source_t* source_) : source(source_) {
     memset(&outputAudio, 0, sizeof(outputAudio));
@@ -157,8 +166,8 @@ void ASIOSource::updateSettings(obs_data_t* settings) {
     }
     numActiveChannels = static_cast<int>(activeChannels.size());
 
-    bufferSize = obs_data_get_int(settings, OPT_BUFFER_SIZE);
-    sampleRate = obs_data_get_int(settings, OPT_SAMPLE_RATE);
+    bufferSize = static_cast<int>(obs_data_get_int(settings, OPT_BUFFER_SIZE));
+    sampleRate = static_cast<int32_t>(obs_data_get_int(settings, OPT_SAMPLE_RATE));
     useDeviceTiming = obs_data_get_bool(settings, OPT_USE_DEVICE_TIMING);
 
     if (deviceHandle) {
@@ -338,7 +347,7 @@ void ASIOSource::consumeAudio() {
     while (running.load(std::memory_order_relaxed) && !stopRequested.load(std::memory_order_relaxed)) {
         int samplesAvailable = 0;
         if (deviceHandle && deviceHandle->ringBuffers) {
-            samplesAvailable = deviceHandle->ringBuffers[0].available();
+            samplesAvailable = static_cast<int>(deviceHandle->ringBuffers[0].available());
         }
 
         if (samplesAvailable < maxSamples / 4) {

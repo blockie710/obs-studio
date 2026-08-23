@@ -5,10 +5,10 @@ if(NOT TARGET OBS::qt-vertical-scroll-area)
   )
 endif()
 
-target_link_libraries(obs-studio PRIVATE OBS::qt-vertical-scroll-area)
+target_link_libraries(nexus-broadcast-studio PRIVATE OBS::qt-vertical-scroll-area)
 
 target_sources(
-  obs-studio
+  nexus-broadcast-studio
   PRIVATE
     widgets/AudioMixer.cpp
     widgets/AudioMixer.hpp
