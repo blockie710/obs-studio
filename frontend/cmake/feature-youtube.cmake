@@ -6,7 +6,7 @@ if(
   AND TARGET OBS::browser-panels
 )
   target_sources(
-    obs-studio
+    obs-community-studio
     PRIVATE
       dialogs/OBSYoutubeActions.cpp
       dialogs/OBSYoutubeActions.hpp
@@ -21,9 +21,9 @@ if(
       utility/YoutubeApiWrappers.hpp
   )
 
-  target_enable_feature(obs-studio "YouTube API connection" YOUTUBE_ENABLED)
+  target_enable_feature(obs-community-studio "YouTube API connection" YOUTUBE_ENABLED)
 else()
-  target_disable_feature(obs-studio "YouTube API connection")
+  target_disable_feature(obs-community-studio "YouTube API connection")
   set(YOUTUBE_SECRET_HASH 0)
   set(YOUTUBE_CLIENTID_HASH 0)
 endif()

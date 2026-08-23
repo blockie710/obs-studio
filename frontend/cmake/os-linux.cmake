@@ -1,5 +1,5 @@
 target_sources(
-  obs-studio
+  obs-community-studio
   PRIVATE
     utility/CrashHandler_Linux.cpp
     utility/NativeEventFilter.cpp
@@ -7,22 +7,22 @@ target_sources(
     utility/system-info-posix.cpp
 )
 target_compile_definitions(
-  obs-studio
+  obs-community-studio
   PRIVATE OBS_INSTALL_PREFIX="${OBS_INSTALL_PREFIX}" $<$<BOOL:${ENABLE_PORTABLE_CONFIG}>:ENABLE_PORTABLE_CONFIG>
 )
-target_link_libraries(obs-studio PRIVATE Qt::DBus)
+target_link_libraries(obs-community-studio PRIVATE Qt::DBus)
 
 if(Qt6_VERSION AND Qt6_VERSION VERSION_LESS "6.9.0")
-  target_link_libraries(obs-studio PRIVATE Qt::GuiPrivate)
+  target_link_libraries(obs-community-studio PRIVATE Qt::GuiPrivate)
 endif()
 
 find_package(Libpci REQUIRED)
-target_link_libraries(obs-studio PRIVATE Libpci::pci)
+target_link_libraries(obs-community-studio PRIVATE Libpci::pci)
 
 if(TARGET OBS::python)
   find_package(Python REQUIRED COMPONENTS Interpreter Development)
-  target_link_libraries(obs-studio PRIVATE Python::Python)
-  target_link_options(obs-studio PRIVATE LINKER:-no-as-needed)
+  target_link_libraries(obs-community-studio PRIVATE Python::Python)
+  target_link_options(obs-community-studio PRIVATE LINKER:-no-as-needed)
 endif()
 
 if(NOT DEFINED APPDATA_RELEASE_DATE)

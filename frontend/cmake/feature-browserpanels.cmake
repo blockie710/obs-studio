@@ -1,10 +1,10 @@
 if(TARGET OBS::browser-panels)
-  target_enable_feature(obs-studio "Browser panels" BROWSER_AVAILABLE)
+  target_enable_feature(obs-community-studio "Browser panels" BROWSER_AVAILABLE)
 
-  target_link_libraries(obs-studio PRIVATE OBS::browser-panels)
+  target_link_libraries(obs-community-studio PRIVATE OBS::browser-panels)
 
   target_sources(
-    obs-studio
+    obs-community-studio
     PRIVATE
       dialogs/OBSExtraBrowsers.cpp
       dialogs/OBSExtraBrowsers.hpp

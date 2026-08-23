@@ -1,5 +1,5 @@
 target_sources(
-  obs-studio
+  obs-community-studio
   PRIVATE
     utility/AdvancedOutput.cpp
     utility/AdvancedOutput.hpp

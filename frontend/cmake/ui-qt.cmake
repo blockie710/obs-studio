@@ -9,22 +9,22 @@ if(NOT TARGET OBS::qt-wrappers)
 endif()
 
 target_link_libraries(
-  obs-studio
+  obs-community-studio
   PRIVATE Qt::Widgets Qt::Svg Qt::Xml Qt::Network OBS::qt-wrappers
 )
 
 set_target_properties(
-  obs-studio
+  obs-community-studio
   PROPERTIES AUTOMOC TRUE AUTOUIC TRUE AUTORCC TRUE AUTOGEN_PARALLEL AUTO
 )
 
 # https://doc.qt.io/qt-6/qtglobal.html#QT_ENABLE_STRICT_MODE_UP_TO
-target_compile_definitions(obs-studio PRIVATE QT_ENABLE_STRICT_MODE_UP_TO=0xFF0000)
+target_compile_definitions(obs-community-studio PRIVATE QT_ENABLE_STRICT_MODE_UP_TO=0xFF0000)
 
-set_property(TARGET obs-studio APPEND PROPERTY AUTOUIC_SEARCH_PATHS forms forms/source-toolbar)
+set_property(TARGET obs-community-studio APPEND PROPERTY AUTOUIC_SEARCH_PATHS forms forms/source-toolbar)
 
 target_sources(
-  obs-studio
+  obs-community-studio
   PRIVATE
     forms/AutoConfigFinishPage.ui
     forms/AutoConfigStartPage.ui
