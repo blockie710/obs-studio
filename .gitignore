@@ -32,6 +32,9 @@
 !COPYING
 !INSTALL
 !README.rst
+!README.md
+!MANIFESTO.md
+!CODE_OF_CONDUCT.md
 
 # Exclude lock files
 *.lock.json
