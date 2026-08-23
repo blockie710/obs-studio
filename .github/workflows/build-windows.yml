@@ -33,10 +33,10 @@ jobs:
           fetch-depth: 0
 
       - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@v12
         with:
           vcpkgDirectory: '${{ env.VCPKG_ROOT }}'
-          vcpkgGitCommitId: 'd6a2ec1a90781c1b8b3c4e5f6a7b8c9d0e1f2a3b'
+          vcpkgGitCommitId: 'latest'
           vcpkgArguments: 'qt6-windows:x64-windows ffmpeg:x64-windows curl:x64-windows mbedtls:x64-windows nlohmann-json:x64-windows blake2:x64-windows'
           appendedCacheKey: 'obs-community-studio-${{ hashFiles(''CMakeLists.txt'', ''cmake/**'') }}'
 

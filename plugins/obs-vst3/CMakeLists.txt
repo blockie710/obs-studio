@@ -16,11 +16,11 @@ endif()
 set(VST3_SDK_PATH "" CACHE PATH "Path to Steinberg VST3 SDK (pluginterfaces/)")
 set(VST3_SDK_ROOT "" CACHE PATH "Root of VST3 SDK (for public.sdk)")
 
-# Check if path is valid
-if(VST3_SDK_PATH AND EXISTS "${VST3_SDK_PATH}/pluginterfaces/vst2.x/aeffect.h")
+# Check if path is valid - VST3 SDK uses pluginterfaces/vst/ not vst2.x/
+if(VST3_SDK_PATH AND EXISTS "${VST3_SDK_PATH}/pluginterfaces/vst/ivstcomponent.h")
   message(STATUS "VST3 SDK found at: ${VST3_SDK_PATH}")
   set(VST3_SDK_FOUND TRUE)
-elseif(VST3_SDK_ROOT AND EXISTS "${VST3_SDK_ROOT}/pluginterfaces/vst2.x/aeffect.h")
+elseif(VST3_SDK_ROOT AND EXISTS "${VST3_SDK_ROOT}/pluginterfaces/vst/ivstcomponent.h")
   set(VST3_SDK_PATH "${VST3_SDK_ROOT}")
   message(STATUS "VST3 SDK found at: ${VST3_SDK_PATH}")
   set(VST3_SDK_FOUND TRUE)
@@ -36,7 +36,7 @@ else()
   )
 
   foreach(path ${VST3_COMMON_PATHS})
-    if(EXISTS "${path}/pluginterfaces/vst2.x/aeffect.h")
+    if(EXISTS "${path}/pluginterfaces/vst/ivstcomponent.h")
       set(VST3_SDK_PATH "${path}" CACHE PATH "Path to Steinberg VST3 SDK" FORCE)
       message(STATUS "Found VST3 SDK at: ${path}")
       set(VST3_SDK_FOUND TRUE)

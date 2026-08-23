@@ -25,97 +25,10 @@
 
 namespace obs_vst3 {
 
-// Forward declare the VST3 plugin instance
-class VST3PluginInstance {
-public:
-    VST3PluginInstance() = default;
-    ~VST3PluginInstance() { unload(); }
-
-    bool load(const std::string& path);
-    void unload();
-
-    bool prepare(double sample_rate, int max_block_size, int num_inputs, int num_outputs);
-    bool process(float** inputs, float** outputs, int num_frames);
-    void setActive(bool active);
-
-    // Parameter handling
-    std::vector<VST3Plugin::ParameterInfo> getParameters() const;
-    float getParameter(uint32_t param_id) const;
-    bool setParameter(uint32_t param_id, float value);
-    int32_t getParameterIndex(uint32_t param_id) const;
-
-    // Program handling
-    int32_t getProgramCount() const;
-    std::string getProgramName(int32_t index) const;
-    bool setProgram(int32_t index);
-
-    // State handling
-    bool getState(std::vector<uint8_t>& state) const;
-    bool setState(const std::vector<uint8_t>& state);
-
-    // GUI
-    bool hasEditor() const;
-    void* createEditor(void* parent_window);
-    void destroyEditor();
-    bool getEditorSize(int& width, int& height) const;
-
-    // Info
-    std::string getName() const;
-    std::string getVendor() const;
-    std::string getVersion() const;
-    std::string getPath() const { return path_; }
-    bool isLoaded() const { return loaded_; }
-
-    void setHostCallback(VST3HostCallback* callback) { host_callback_ = callback; }
-
-private:
-    std::string path_;
-    bool loaded_ = false;
-
-#if defined(HAVE_VST3_SDK)
-    // VST3 SDK objects
-    Steinberg::Vst::IComponent* component_ = nullptr;
-    Steinberg::Vst::IAudioProcessor* processor_ = nullptr;
-    Steinberg::Vst::IEditController* controller_ = nullptr;
-    Steinberg::Vst::IPlugView* view_ = nullptr;
-    void* module_handle_ = nullptr;
-
-    // Factory
-    Steinberg::IPluginFactory* factory_ = nullptr;
-    Steinberg::PFactoryInfo factory_info_;
-
-    // Plugin info
-    Steinberg::PClassInfo class_info_;
-#else
-    void* module_handle_ = nullptr;
-#endif
-
-    VST3HostCallback* host_callback_ = nullptr;
-
-    // Audio setup
-    double sample_rate_ = 48000.0;
-    int max_block_size_ = 1024;
-    int num_inputs_ = 2;
-    int num_outputs_ = 2;
-    bool active_ = false;
-
-    // Processing buffers
-    std::vector<float*> input_ptrs_;
-    std::vector<float*> output_ptrs_;
-
-    // Helper methods
-#if defined(HAVE_VST3_SDK)
-    bool initializeComponent();
-    void terminateComponent();
-    bool createView(void* parent);
-    Steinberg::tresult queryInterface(Steinberg::FUnknown* obj, const Steinberg::TUID iid, void** result);
-#endif
-};
-
 // VST3HostContext implementation
 struct VST3HostContext {
     obs_source_t* source = nullptr;
-    std::unique_ptr<VST3PluginInstance> plugin;
+    std::unique_ptr<VST3Plugin> plugin;
     std::string plugin_path;
     int sample_rate = 48000;
     int buffer_size = 512;
@@ -137,7 +50,7 @@ struct VST3HostContext {
     std::vector<AutomatedParam> automated_params;
 
     // GUI
-    void* editor_window = nullptr;
+    std::unique_ptr<VST3EditorWidget> editor_widget;
     bool editor_open = false;
 
     // Statistics
@@ -174,7 +87,7 @@ static void vst3_filter_update(void* data, obs_data_t* settings) {
         }
     } else if (plugin_path && *plugin_path) {
         // First load
-        ctx->plugin = std::make_unique<VST3PluginInstance>();
+        ctx->plugin = std::make_unique<VST3Plugin>();
         if (ctx->plugin->load(plugin_path)) {
             ctx->plugin_path = plugin_path;
             ctx->plugin->prepare(ctx->sample_rate, ctx->buffer_size, ctx->num_channels, ctx->num_channels);
@@ -252,7 +165,7 @@ static void vst3_filter_audio_render(void* data, obs_source_t* source,
 
     // Process through VST3 plugin
     auto start = std::chrono::high_resolution_clock::now();
-    ctx->plugin->Process(ctx->input_ptrs.data(), ctx->output_ptrs.data(), (int)frames);
+    ctx->plugin->process(ctx->input_ptrs.data(), ctx->output_ptrs.data(), (int)frames);
     auto end = std::chrono::high_resolution_clock::now();
 
     ctx->cpu_usage = std::chrono::duration<double, std::milli>(end - start).count();

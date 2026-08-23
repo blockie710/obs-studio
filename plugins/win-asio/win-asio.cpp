@@ -7,7 +7,6 @@
  * GNU GPLv3 (or later)
  *****************************************************************************/
 
-#include "asio-source.hpp"
 #include "asio-driver-manager.hpp"
 
 #include <obs-module.h>
