@@ -14,34 +14,37 @@ endif()
 
 if(OBS_PARENT_ARCHITECTURE STREQUAL CMAKE_VS_PLATFORM_NAME)
   if(OBS_PARENT_ARCHITECTURE STREQUAL ARM64)
-    execute_process(
-      COMMAND
-        "${CMAKE_COMMAND}" -S ${CMAKE_CURRENT_SOURCE_DIR} -B ${CMAKE_SOURCE_DIR}/build_x64 -A
-        "x64,version=${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}" -G "${CMAKE_GENERATOR}"
-        -DCMAKE_SYSTEM_VERSION:STRING='${CMAKE_SYSTEM_VERSION}' -DVIRTUALCAM_GUID:STRING=${VIRTUALCAM_GUID}
-        -DCMAKE_MESSAGE_LOG_LEVEL:STRING=${CMAKE_MESSAGE_LOG_LEVEL} -DOBS_PARENT_ARCHITECTURE:STRING=ARM64
-      RESULT_VARIABLE _process_result
-      COMMAND_ERROR_IS_FATAL ANY
-    )
-    execute_process(
-      COMMAND
-        "${CMAKE_COMMAND}" -S ${CMAKE_CURRENT_SOURCE_DIR} -B ${CMAKE_SOURCE_DIR}/build_x86 -A
-        "Win32,version=${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}" -G "${CMAKE_GENERATOR}"
-        -DCMAKE_SYSTEM_VERSION:STRING='${CMAKE_SYSTEM_VERSION}' -DVIRTUALCAM_GUID:STRING=${VIRTUALCAM_GUID}
-        -DCMAKE_MESSAGE_LOG_LEVEL:STRING=${CMAKE_MESSAGE_LOG_LEVEL} -DOBS_PARENT_ARCHITECTURE:STRING=ARM64
-      RESULT_VARIABLE _process_result
-      COMMAND_ERROR_IS_FATAL ANY
-    )
+      execute_process(
+        COMMAND
+          "${CMAKE_COMMAND}" -S ${CMAKE_CURRENT_SOURCE_DIR} -B ${CMAKE_SOURCE_DIR}/build_x64 -A
+          "x64,version=${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}" -G "${CMAKE_GENERATOR}"
+          -DCMAKE_SYSTEM_VERSION:STRING='${CMAKE_SYSTEM_VERSION}' -DVIRTUALCAM_GUID:STRING=${VIRTUALCAM_GUID}
+          -DCMAKE_MESSAGE_LOG_LEVEL:STRING=${CMAKE_MESSAGE_LOG_LEVEL} -DOBS_PARENT_ARCHITECTURE:STRING=ARM64
+          -DOBS_VERSION_OVERRIDE:STRING=${OBS_VERSION_OVERRIDE}
+        RESULT_VARIABLE _process_result
+        COMMAND_ERROR_IS_FATAL ANY
+      )
+      execute_process(
+        COMMAND
+          "${CMAKE_COMMAND}" -S ${CMAKE_CURRENT_SOURCE_DIR} -B ${CMAKE_SOURCE_DIR}/build_x86 -A
+          "Win32,version=${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}" -G "${CMAKE_GENERATOR}"
+          -DCMAKE_SYSTEM_VERSION:STRING='${CMAKE_SYSTEM_VERSION}' -DVIRTUALCAM_GUID:STRING=${VIRTUALCAM_GUID}
+          -DCMAKE_MESSAGE_LOG_LEVEL:STRING=${CMAKE_MESSAGE_LOG_LEVEL} -DOBS_PARENT_ARCHITECTURE:STRING=ARM64
+          -DOBS_VERSION_OVERRIDE:STRING=${OBS_VERSION_OVERRIDE}
+        RESULT_VARIABLE _process_result
+        COMMAND_ERROR_IS_FATAL ANY
+      )
   elseif(OBS_PARENT_ARCHITECTURE STREQUAL x64)
-    execute_process(
-      COMMAND
-        "${CMAKE_COMMAND}" -S ${CMAKE_CURRENT_SOURCE_DIR} -B ${CMAKE_SOURCE_DIR}/build_x86 -A
-        "Win32,version=${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}" -G "${CMAKE_GENERATOR}"
-        -DCMAKE_SYSTEM_VERSION:STRING='${CMAKE_SYSTEM_VERSION}' -DVIRTUALCAM_GUID:STRING=${VIRTUALCAM_GUID}
-        -DCMAKE_MESSAGE_LOG_LEVEL:STRING=${CMAKE_MESSAGE_LOG_LEVEL} -DOBS_PARENT_ARCHITECTURE:STRING=x64
-      RESULT_VARIABLE _process_result
-      COMMAND_ERROR_IS_FATAL ANY
-    )
+      execute_process(
+        COMMAND
+          "${CMAKE_COMMAND}" -S ${CMAKE_CURRENT_SOURCE_DIR} -B ${CMAKE_SOURCE_DIR}/build_x86 -A
+          "Win32,version=${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}" -G "${CMAKE_GENERATOR}"
+          -DCMAKE_SYSTEM_VERSION:STRING='${CMAKE_SYSTEM_VERSION}' -DVIRTUALCAM_GUID:STRING=${VIRTUALCAM_GUID}
+          -DCMAKE_MESSAGE_LOG_LEVEL:STRING=${CMAKE_MESSAGE_LOG_LEVEL} -DOBS_PARENT_ARCHITECTURE:STRING=x64
+          -DOBS_VERSION_OVERRIDE:STRING=${OBS_VERSION_OVERRIDE}
+        RESULT_VARIABLE _process_result
+        COMMAND_ERROR_IS_FATAL ANY
+      )
   endif()
 else()
   # target_disable_feature: Stub macro for child architecture builds
@@ -102,11 +105,11 @@ else()
 
   include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/windows/buildspec.cmake")
 
-  add_subdirectory(libobs)
-  add_subdirectory(plugins/win-capture/get-graphics-offsets)
-  add_subdirectory(plugins/win-capture/graphics-hook)
-  add_subdirectory(plugins/win-capture/inject-helper)
-  add_subdirectory(plugins/win-dshow/virtualcam-module)
+    add_subdirectory(libobs)
+    add_subdirectory(plugins/win-capture/get-graphics-offsets)
+    add_subdirectory(plugins/win-capture/graphics-hook)
+    add_subdirectory(plugins/win-capture/inject-helper)
+    # add_subdirectory(plugins/win-dshow/virtualcam-module) - directory not present
 
-  return()
+    return()
 endif()

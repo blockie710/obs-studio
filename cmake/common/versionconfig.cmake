@@ -6,7 +6,20 @@ set(_obs_version ${_obs_default_version})
 set(_obs_version_canonical ${_obs_default_version})
 
 # Attempt to automatically discover expected OBS version
-if(NOT DEFINED OBS_VERSION_OVERRIDE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
+if(DEFINED OBS_VERSION_OVERRIDE)
+  if(OBS_VERSION_OVERRIDE MATCHES "([0-9]+)\\.([0-9]+)\\.([0-9]+).*")
+    string(
+      REGEX REPLACE
+      "([0-9]+)\\.([0-9]+)\\.([0-9]+).*"
+      "\\1;\\2;\\3"
+      _obs_version_canonical
+      ${OBS_VERSION_OVERRIDE}
+    )
+    set(_obs_version ${OBS_VERSION_OVERRIDE})
+  else()
+    message(FATAL_ERROR "Invalid version supplied - must be <MAJOR>.<MINOR>.<PATCH>[-(rc|beta)<NUMBER>].")
+  endif()
+elseif(NOT DEFINED OBS_VERSION_OVERRIDE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
   execute_process(
     COMMAND git describe --always --tags --dirty=-modified
     OUTPUT_VARIABLE _obs_version
@@ -22,20 +35,15 @@ if(NOT DEFINED OBS_VERSION_OVERRIDE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git
 
   if(_obs_version_result EQUAL 0)
     string(REGEX REPLACE "([0-9]+)\\.([0-9]+)\\.([0-9]+).*" "\\1;\\2;\\3" _obs_version_canonical ${_obs_version})
-  endif()
-elseif(DEFINED OBS_VERSION_OVERRIDE)
-  if(OBS_VERSION_OVERRIDE MATCHES "([0-9]+)\\.([0-9]+)\\.([0-9]+).*")
-    string(
-      REGEX REPLACE
-      "([0-9]+)\\.([0-9]+)\\.([0-9]+).*"
-      "\\1;\\2;\\3"
-      _obs_version_canonical
-      ${OBS_VERSION_OVERRIDE}
-    )
-    set(_obs_version ${OBS_VERSION_OVERRIDE})
   else()
-    message(FATAL_ERROR "Invalid version supplied - must be <MAJOR>.<MINOR>.<PATCH>[-(rc|beta)<NUMBER>].")
+    # Fallback if git describe fails or returns non-semver
+    set(_obs_version_canonical "30;0;0")
+    set(_obs_version "30.0.0")
   endif()
+else()
+  # Default fallback
+  set(_obs_version_canonical "30;0;0")
+  set(_obs_version "30.0.0")
 endif()
 
 # Set beta/rc versions if suffix included in version string

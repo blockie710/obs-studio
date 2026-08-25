@@ -22,10 +22,8 @@ target_sources(
     asio-driver-manager.hpp
     asio-ring-buffer.cpp
     asio-ring-buffer.hpp
-    asio-source.cpp
     asio-source.hpp
     win-asio.cpp
-    win-asio.hpp
 )
 
 target_include_directories(win-asio PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -41,7 +39,7 @@ target_link_libraries(
 )
 
 if(OS_WINDOWS)
-  configure_file(cmake/windows/obs-module.rc.in win-asio.rc)
+  configure_file(${CMAKE_SOURCE_DIR}/cmake/bundle/windows/obs-module.rc.in win-asio.rc)
   target_sources(win-asio PRIVATE win-asio.rc)
   set_property(TARGET win-asio APPEND PROPERTY AUTORCC_OPTIONS --format-version 1)
 endif()

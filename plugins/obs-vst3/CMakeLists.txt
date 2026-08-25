@@ -92,7 +92,7 @@ target_link_libraries(
 )
 
 if(OS_WINDOWS)
-  configure_file(cmake/windows/obs-module.rc.in obs-vst3.rc)
+  configure_file(${CMAKE_SOURCE_DIR}/cmake/bundle/windows/obs-module.rc.in obs-vst3.rc)
   target_sources(obs-vst3 PRIVATE obs-vst3.rc)
   set_property(TARGET obs-vst3 APPEND PROPERTY AUTORCC_OPTIONS --format-version 1)
   target_link_libraries(obs-vst3 PRIVATE Ole32 OleAut32 Uuid)
@@ -120,6 +120,6 @@ target_compile_definitions(obs-vst3 PRIVATE
 
 # Version resource for Windows
 if(OS_WINDOWS)
-  configure_file(cmake/windows/obs-module.rc.in obs-vst3.rc @ONLY)
+  configure_file(${CMAKE_SOURCE_DIR}/cmake/bundle/windows/obs-module.rc.in obs-vst3.rc @ONLY)
   target_sources(obs-vst3 PRIVATE obs-vst3.rc)
 endif()
