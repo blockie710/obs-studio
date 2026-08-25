@@ -21,7 +21,6 @@
 
 #include <obs-module.h>
 #include <util/threading.h>
-#include <util/circlebuf.h>
 
 #include <windows.h>
 #include <combaseapi.h>
@@ -35,8 +34,23 @@
 #include <atomic>
 #include <mutex>
 #include <unordered_map>
+#include <functional>
 
 // ASIO SDK types (loaded dynamically - no static linking)
+using ASIOBool = long;
+using ASIOSampleRate = double;
+using ASIOSamples = long long;
+using ASIOTimeStamp = long long;
+
+struct ASIOTime {
+    ASIOTimeStamp time;
+    ASIOSamples samplePosition;
+    ASIOSamples samplePositionHi;
+    ASIOTimeStamp systemTime;
+    ASIOTimeStamp systemTimeHi;
+    long flags;
+};
+
 typedef struct ASIODriverInfo {
     char name[64];
     char version[64];
@@ -88,11 +102,36 @@ typedef long (*ASIOStart)();
 typedef long (*ASIOStop)();
 typedef long (*ASIOGetSamplePosition)(ASIOSamples* sPos, ASIOTimeStamp* tStamp);
 
+// ASIO Sample Types
+enum ASIOSampleType {
+    ASIOSTInt16MSB    = 0,
+    ASIOSTInt24MSB    = 1,
+    ASIOSTInt32MSB    = 2,
+    ASIOSTFloat32MSB  = 3,
+    ASIOSTFloat64MSB  = 4,
+    ASIOSTInt32MSB16  = 8,
+    ASIOSTInt32MSB18  = 9,
+    ASIOSTInt32MSB20  = 10,
+    ASIOSTInt32MSB24  = 11,
+    ASIOSTInt16LSB    = 16,
+    ASIOSTInt24LSB    = 17,
+    ASIOSTInt32LSB    = 18,
+    ASIOSTFloat32LSB  = 19,
+    ASIOSTFloat64LSB  = 20,
+    ASIOSTInt32LSB16  = 24,
+    ASIOSTInt32LSB18  = 25,
+    ASIOSTInt32LSB20  = 26,
+    ASIOSTInt32LSB24  = 27,
+    ASIOSTDSDInt8LSB1 = 32,
+    ASIOSTDSDInt8MSB1 = 33,
+    ASIOSTDSDInt8NER8 = 40
+};
+
 // ASIO COM Interface
 struct IASIO {
     virtual long QueryInterface(const IID& riid, void** ppv) = 0;
     virtual long AddRef() = 0;
-    long Release() = 0;
+    virtual long Release() = 0;
 
     virtual long Init(ASIODriverInfo* info) = 0;
     virtual long GetChannels(long* numInputChannels, long* numOutputChannels) = 0;
@@ -114,32 +153,45 @@ struct IASIO {
     virtual long GetSampleRateRange(ASIOSampleRate* min, ASIOSampleRate* max) = 0;
 };
 
+// Utility function for wide string conversion
+namespace win_asio {
+std::string wstr_to_str(const std::wstring& wstr);
+std::wstring str_to_wstr(const std::string& str);
+}
+
+// Include the ring buffer class (outside namespace)
+#include "asio-ring-buffer.hpp"
+
+namespace win_asio {
+
+// ASIO Sample Types
+enum ASIOSampleType {
+    ASIOSTInt16MSB    = 0,
+    ASIOSTInt24MSB    = 1,
+    ASIOSTInt32MSB    = 2,
+    ASIOSTFloat32MSB  = 3,
+    ASIOSTFloat64MSB  = 4,
+    ASIOSTInt32MSB16  = 8,
+    ASIOSTInt32MSB18  = 9,
+    ASIOSTInt32MSB20  = 10,
+    ASIOSTInt32MSB24  = 11,
+    ASIOSTInt16LSB    = 16,
+    ASIOSTInt24LSB    = 17,
+    ASIOSTInt32LSB    = 18,
+    ASIOSTFloat32LSB  = 19,
+    ASIOSTFloat64LSB  = 20,
+    ASIOSTInt32LSB16  = 24,
+    ASIOSTInt32LSB18  = 25,
+    ASIOSTInt32LSB20  = 26,
+    ASIOSTInt32LSB24  = 27,
+    ASIOSTDSDInt8LSB1 = 32,
+    ASIOSTDSDInt8MSB1 = 33,
+    ASIOSTDSDInt8NER8 = 40
+};
+
 // Forward declarations
 struct asio_driver_t;
 struct asio_channel_router_t;
-
-/**
- * Lock-free SPSC ring buffer for real-time audio transport
- * Zero-allocation, cache-line aligned for NUMA-friendly access
- */
-struct asio_ring_buffer_t {
-    // Cache-line alignment to prevent false sharing
-    alignas(64) std::atomic<size_t> write_pos{0};
-    alignas(64) std::atomic<size_t> read_pos{0};
-    alignas(64) size_t capacity;
-    alignas(64) size_t channel_count;
-    alignas(64) size_t frame_stride;  // bytes per frame (all channels)
-    alignas(64) uint8_t* data;
-
-    // Statistics (updated atomically)
-    alignas(64) std::atomic<uint64_t> frames_written{0};
-    alignas(64) std::atomic<uint64_t> frames_read{0};
-    alignas(64) std::atomic<uint64_t> overruns{0};
-    alignas(64) std::atomic<uint64_t> underruns{0};
-
-    // Pre-allocated planar float32 buffers per channel
-    // [channel][frame * sizeof(float)]
-};
 
 struct asio_driver_t {
     IASIO* com_interface = nullptr;
@@ -259,6 +311,9 @@ public:
     int GetInputChannelCount() const { return driver_ ? (int)driver_->input_channels.size() : 0; }
     int GetOutputChannelCount() const { return driver_ ? (int)driver_->output_channels.size() : 0; }
 
+    // Control Panel
+    bool OpenControlPanel();
+
     // Statistics
     struct Stats {
         uint64_t frames_processed = 0;
@@ -289,14 +344,14 @@ private:
     std::mutex driver_mutex_;
 
     // Client management
-    std::mutex clients_mutex_;
+    mutable std::mutex clients_mutex_;
     struct ClientContext {
         int id;
         AudioCallback callback;
         std::vector<asio_channel_router_t::route_t> input_routes;
         std::vector<asio_channel_router_t::route_t> output_routes;
-        std::unique_ptr<asio_ring_buffer_t> input_buffer;
-        std::unique_ptr<asio_ring_buffer_t> output_buffer;
+        std::unique_ptr<ASIORingBuffer> input_buffer;
+        std::unique_ptr<ASIORingBuffer> output_buffer;
     };
     std::unordered_map<int, std::unique_ptr<ClientContext>> clients_;
     std::atomic<int> next_client_id_{1};
@@ -304,3 +359,5 @@ private:
     // COM initialization state
     bool com_initialized_ = false;
 };
+
+} // namespace win_asio

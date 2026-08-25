@@ -12,9 +12,7 @@ set_property(GLOBAL APPEND PROPERTY OBS_FEATURES_ENABLED "Plugin Support")
 macro(check_obs_browser)
   if((OS_WINDOWS AND CMAKE_VS_PLATFORM_NAME MATCHES "(ARM64|x64)") OR OS_MACOS OR OS_LINUX)
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/obs-browser/CMakeLists.txt")
-      message(WARNING "Required submodule 'obs-browser' not available. Skipping.")
-      # add_custom_target(obs-browser)
-      # target_disable(obs-browser)
+      message(WARNING "Optional submodule 'obs-browser' not available, skipping.")
     else()
       add_subdirectory(obs-browser)
     endif()
@@ -26,8 +24,7 @@ endmacro()
 
 macro(check_obs_websocket)
   if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/obs-websocket/CMakeLists.txt")
-    message(WARNING "Required submodule 'obs-websocket' not available. Skipping.")
-    # message(FATAL_ERROR "Required submodule 'obs-websocket' not available.")
+    message(WARNING "Optional submodule 'obs-websocket' not available, skipping.")
   else()
     add_subdirectory(obs-websocket)
   endif()
@@ -94,11 +91,16 @@ add_obs_plugin(
     PLATFORMS WINDOWS MACOS LINUX
     WITH_MESSAGE
 )
-add_obs_plugin(
-    obs-vst3
-    PLATFORMS WINDOWS MACOS LINUX
-    WITH_MESSAGE
-)
+# add_obs_plugin(
+#     obs-vst3
+#     PLATFORMS WINDOWS MACOS LINUX
+#     WITH_MESSAGE
+# )  # Disabled - VST3 SDK not available
+# add_obs_plugin(
+#     obs-vst3
+#     PLATFORMS WINDOWS MACOS LINUX
+#     WITH_MESSAGE
+# )  # Disabled - VST3 SDK not available
 add_obs_plugin(obs-webrtc)
 
 check_obs_websocket()
@@ -110,8 +112,8 @@ add_obs_plugin(sndio PLATFORMS LINUX FREEBSD OPENBSD)
 add_obs_plugin(text-freetype2)
 add_obs_plugin(vlc-video WITH_MESSAGE)
 add_obs_plugin(win-capture PLATFORMS WINDOWS)
-# add_obs_plugin(win-dshow PLATFORMS WINDOWS) - directory not present
-# add_obs_plugin(win-wasapi PLATFORMS WINDOWS) - directory not present
+# add_obs_plugin(win-dshow PLATFORMS WINDOWS)  # Not present in this fork
+# add_obs_plugin(win-wasapi PLATFORMS WINDOWS)  # Not present in this fork
 
 if(ENABLE_ASIO)
   add_obs_plugin(

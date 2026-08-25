@@ -6,20 +6,7 @@ set(_obs_version ${_obs_default_version})
 set(_obs_version_canonical ${_obs_default_version})
 
 # Attempt to automatically discover expected OBS version
-if(DEFINED OBS_VERSION_OVERRIDE)
-  if(OBS_VERSION_OVERRIDE MATCHES "([0-9]+)\\.([0-9]+)\\.([0-9]+).*")
-    string(
-      REGEX REPLACE
-      "([0-9]+)\\.([0-9]+)\\.([0-9]+).*"
-      "\\1;\\2;\\3"
-      _obs_version_canonical
-      ${OBS_VERSION_OVERRIDE}
-    )
-    set(_obs_version ${OBS_VERSION_OVERRIDE})
-  else()
-    message(FATAL_ERROR "Invalid version supplied - must be <MAJOR>.<MINOR>.<PATCH>[-(rc|beta)<NUMBER>].")
-  endif()
-elseif(NOT DEFINED OBS_VERSION_OVERRIDE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
+if(NOT DEFINED OBS_VERSION_OVERRIDE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
   execute_process(
     COMMAND git describe --always --tags --dirty=-modified
     OUTPUT_VARIABLE _obs_version
@@ -34,16 +21,27 @@ elseif(NOT DEFINED OBS_VERSION_OVERRIDE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/
   endif()
 
   if(_obs_version_result EQUAL 0)
-    string(REGEX REPLACE "([0-9]+)\\.([0-9]+)\\.([0-9]+).*" "\\1;\\2;\\3" _obs_version_canonical ${_obs_version})
-  else()
-    # Fallback if git describe fails or returns non-semver
-    set(_obs_version_canonical "30;0;0")
-    set(_obs_version "30.0.0")
+    # Check if the version matches expected format before parsing
+    if(_obs_version MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+")
+      string(REGEX REPLACE "([0-9]+)\\.([0-9]+)\\.([0-9]+).*" "\\1;\\2;\\3" _obs_version_canonical ${_obs_version})
+    else()
+      message(WARNING "Git describe version '${_obs_version}' doesn't match expected format, using default")
+      set(_obs_version_canonical "0;0;1")
+    endif()
   endif()
-else()
-  # Default fallback
-  set(_obs_version_canonical "30;0;0")
-  set(_obs_version "30.0.0")
+elseif(DEFINED OBS_VERSION_OVERRIDE)
+  if(OBS_VERSION_OVERRIDE MATCHES "([0-9]+)\\.([0-9]+)\\.([0-9]+).*")
+    string(
+      REGEX REPLACE
+      "([0-9]+)\\.([0-9]+)\\.([0-9]+).*"
+      "\\1;\\2;\\3"
+      _obs_version_canonical
+      ${OBS_VERSION_OVERRIDE}
+    )
+    set(_obs_version ${OBS_VERSION_OVERRIDE})
+  else()
+    message(FATAL_ERROR "Invalid version supplied - must be <MAJOR>.<MINOR>.<PATCH>[-(rc|beta)<NUMBER>].")
+  endif()
 endif()
 
 # Set beta/rc versions if suffix included in version string

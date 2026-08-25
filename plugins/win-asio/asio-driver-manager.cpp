@@ -26,77 +26,8 @@
 #include <sstream>
 #include <iomanip>
 
-namespace win_asio {
-
-// ASIO type definitions (normally from asiosys.h / asio.h)
-using ASIOBool = long;
-using ASIOSampleRate = double;
-using ASIOSamples = long long;
-using ASIOTimeStamp = long long;
-
-struct ASIOTime {
-    ASIOTimeStamp time;
-    ASIOSamples samplePosition;
-    ASIOSamples samplePositionHi;
-    ASIOTimeStamp systemTime;
-    ASIOTimeStamp systemTimeHi;
-    long flags;
-};
-
-// Forward declare ASIO COM interface
-struct IASIO {
-    virtual long QueryInterface(const IID& riid, void** ppv) = 0;
-    virtual long AddRef() = 0;
-    virtual long Release() = 0;
-
-    virtual long Init(ASIODriverInfo* info) = 0;
-    virtual long GetChannels(long* numInputChannels, long* numOutputChannels) = 0;
-    virtual long GetLatencies(long* inputLatency, long* outputLatency) = 0;
-    virtual long GetBufferSize(long* minSize, long* maxSize, long* preferredSize, long* granularity) = 0;
-    virtual long CanSampleRate(ASIOSampleRate sampleRate) = 0;
-    virtual long GetSampleRate(ASIOSampleRate* sampleRate) = 0;
-    virtual long SetSampleRate(ASIOSampleRate sampleRate) = 0;
-    virtual long GetChannelInfo(ASIOChannelInfo* info) = 0;
-    virtual long CreateBuffers(ASIOBufferInfo* bufferInfos, long numChannels, long bufferSize, ASIOCallbacks* callbacks) = 0;
-    virtual long DisposeBuffers() = 0;
-    virtual long ControlPanel() = 0;
-    virtual long Future(long selector, void* opt) = 0;
-    virtual long OutputReady() = 0;
-    virtual long Start() = 0;
-    virtual long Stop() = 0;
-    virtual long GetSamplePosition(ASIOSamples* sPos, ASIOTimeStamp* tStamp) = 0;
-    virtual long GetChannelName(long channel, bool isInput, char* name, long nameSize) = 0;
-    virtual long GetSampleRateRange(ASIOSampleRate* min, ASIOSampleRate* max) = 0;
-};
-
-// ASIO sample types
-enum ASIOSampleType {
-    ASIOSTInt16MSB    = 0,
-    ASIOSTInt24MSB    = 1,
-    ASIOSTInt32MSB    = 2,
-    ASIOSTFloat32MSB  = 3,
-    ASIOSTFloat64MSB  = 4,
-    ASIOSTInt32MSB16  = 8,
-    ASIOSTInt32MSB18  = 9,
-    ASIOSTInt32MSB20  = 10,
-    ASIOSTInt32MSB24  = 11,
-    ASIOSTInt16LSB    = 16,
-    ASIOSTInt24LSB    = 17,
-    ASIOSTInt32LSB    = 18,
-    ASIOSTFloat32LSB  = 19,
-    ASIOSTFloat64LSB  = 20,
-    ASIOSTInt32LSB16  = 24,
-    ASIOSTInt32LSB18  = 25,
-    ASIOSTInt32LSB20  = 26,
-    ASIOSTInt32LSB24  = 27,
-    ASIOSTDSDInt8LSB1 = 32,
-    ASIOSTDSDInt8MSB1 = 33,
-    ASIOSTDSDInt8NER8 = 40
-};
-
-} // namespace win_asio
-
 // Implementation of ASIO_DriverManager
+
 namespace win_asio {
 
 ASIO_DriverManager::~ASIO_DriverManager() {
@@ -159,7 +90,7 @@ std::vector<ASIO_DriverManager::DriverDescriptor> ASIO_DriverManager::DiscoverDr
             if (status != ERROR_SUCCESS) break;
 
             DriverDescriptor desc;
-            desc.name = win_asio::wstr_to_str(subkey_name);
+            desc.name = wstr_to_str(subkey_name);
 
             // Open driver subkey
             HKEY hdriver = nullptr;
@@ -175,7 +106,7 @@ std::vector<ASIO_DriverManager::DriverDescriptor> ASIO_DriverManager::DiscoverDr
             DWORD clsid_size = sizeof(clsid_str);
             status = RegGetValueW(hdriver, nullptr, L"CLSID", RRF_RT_REG_SZ, nullptr, clsid_str, &clsid_size);
             if (status == ERROR_SUCCESS) {
-                desc.clsid = win_asio::wstr_to_str(clsid_str);
+                desc.clsid = wstr_to_str(clsid_str);
             }
 
             // Read driver DLL path
@@ -183,7 +114,7 @@ std::vector<ASIO_DriverManager::DriverDescriptor> ASIO_DriverManager::DiscoverDr
             DWORD dll_size = sizeof(dll_path);
             status = RegGetValueW(hdriver, nullptr, L"DllPath", RRF_RT_REG_SZ, nullptr, dll_path, &dll_size);
             if (status == ERROR_SUCCESS) {
-                desc.dll_path = win_asio::wstr_to_str(dll_path);
+                desc.dll_path = wstr_to_str(dll_path);
             }
 
             // Read vendor/version if available
@@ -191,14 +122,14 @@ std::vector<ASIO_DriverManager::DriverDescriptor> ASIO_DriverManager::DiscoverDr
             DWORD vendor_size = sizeof(vendor_str);
             status = RegGetValueW(hdriver, nullptr, L"Vendor", RRF_RT_REG_SZ, nullptr, vendor_str, &vendor_size);
             if (status == ERROR_SUCCESS) {
-                desc.vendor = win_asio::wstr_to_str(vendor_str);
+                desc.vendor = wstr_to_str(vendor_str);
             }
 
             wchar_t version_str[256];
             DWORD version_size = sizeof(version_str);
             status = RegGetValueW(hdriver, nullptr, L"Version", RRF_RT_REG_SZ, nullptr, version_str, &version_size);
             if (status == ERROR_SUCCESS) {
-                desc.version = win_asio::wstr_to_str(version_str);
+                desc.version = wstr_to_str(version_str);
             }
 
             RegCloseKey(hdriver);
@@ -311,12 +242,6 @@ bool ASIO_DriverManager::OpenDriver(const std::string& driver_clsid) {
         driver_->current_sample_rate = rate;
     }
 
-    // Get sample type for each channel
-    for (long i = 0; i < num_inputs; ++i) {
-        // ASIO doesn't directly expose sample type per channel in standard API
-        // We'll assume standard formats and query during buffer creation
-    }
-
     blog(LOG_INFO, "[win-asio] Opened ASIO driver: %s", driver_->info.name);
     blog(LOG_INFO, "[win-asio]   Channels: %ld in / %ld out", num_inputs, num_outputs);
     blog(LOG_INFO, "[win-asio]   Preferred buffer size: %ld", driver_->preferred_buffer_size);
@@ -334,7 +259,7 @@ void ASIO_DriverManager::CloseDriver() {
 }
 
 bool ASIO_DriverManager::LoadDriverDLL(const std::string& dll_path) {
-    driver_ = std::make_unique<asio_driver_t>();
+    driver_ = std::make_unique<win_asio::asio_driver_t>();
 
     // Convert to wide string
     std::wstring wide_path(dll_path.begin(), dll_path.end());
@@ -353,7 +278,8 @@ bool ASIO_DriverManager::LoadDriverDLL(const std::string& dll_path) {
 bool ASIO_DriverManager::CreateASIOInstance(const std::string& clsid_str) {
     // Convert CLSID string to GUID
     CLSID clsid;
-    HRESULT hr = CLSIDFromString(const_cast<wchar_t*>(std::wstring(clsid_str.begin(), clsid_str.end()).c_str()), &clsid);
+    std::wstring wclsid(clsid_str.begin(), clsid_str.end());
+    HRESULT hr = CLSIDFromString(const_cast<wchar_t*>(wclsid.c_str()), &clsid);
     if (FAILED(hr)) {
         blog(LOG_ERROR, "[win-asio] Invalid CLSID: %s", clsid_str.c_str());
         return false;
@@ -361,7 +287,7 @@ bool ASIO_DriverManager::CreateASIOInstance(const std::string& clsid_str) {
 
     // Create COM instance
     IASIO* asio = nullptr;
-    hr = CoCreateInstance(clsid, nullptr, CLSCTX_INPROC_SERVER, __uuidof(IASIO), (void**)&asio);
+    hr = CoCreateInstance(clsid, nullptr, CLSCTX_INPROC_SERVER, IID_IUnknown, (void**)&asio);
     if (FAILED(hr)) {
         blog(LOG_ERROR, "[win-asio] CoCreateInstance failed: 0x%08X", hr);
         return false;
@@ -396,8 +322,8 @@ int ASIO_DriverManager::AcquireClient() {
     ctx->callback = nullptr;
 
     // Create ring buffers for this client
-    ctx->input_buffer = std::make_unique<ASIORingBuffer>(8192, 64);  // Max 64 channels
-    ctx->output_buffer = std::make_unique<ASIORingBuffer>(8192, 64);
+    ctx->input_buffer = std::make_unique<win_asio::ASIORingBuffer>(8192, 64);  // Max 64 channels
+    ctx->output_buffer = std::make_unique<win_asio::ASIORingBuffer>(8192, 64);
 
     clients_[client_id] = std::move(ctx);
 
@@ -474,7 +400,7 @@ bool ASIO_DriverManager::ConfigureChannels(const std::vector<int>& input_channel
     driver_->buffers_created = true;
 
     // Create channel router
-    driver_->router = std::make_unique<asio_channel_router_t>();
+    driver_->router = std::make_unique<win_asio::asio_channel_router_t>();
 
     blog(LOG_INFO, "[win-asio] Configured %d input + %d output channels @ %f Hz, buffer=%d",
          (int)input_channels.size(), (int)output_channels.size(), sample_rate, buffer_size);
@@ -526,7 +452,7 @@ void ASIO_DriverManager::SetAudioCallback(int client_id, AudioCallback callback)
     }
 }
 
-bool ASIO_DriverManager::SetClientInputRouting(int client_id, const std::vector<asio_channel_router_t::route_t>& routes) {
+bool ASIO_DriverManager::SetClientInputRouting(int client_id, const std::vector<win_asio::asio_channel_router_t::route_t>& routes) {
     std::lock_guard<std::mutex> lock(clients_mutex_);
 
     auto it = clients_.find(client_id);
@@ -541,7 +467,7 @@ bool ASIO_DriverManager::SetClientInputRouting(int client_id, const std::vector<
     return false;
 }
 
-bool ASIO_DriverManager::SetClientOutputRouting(int client_id, const std::vector<asio_channel_router_t::route_t>& routes) {
+bool ASIO_DriverManager::SetClientOutputRouting(int client_id, const std::vector<win_asio::asio_channel_router_t::route_t>& routes) {
     std::lock_guard<std::mutex> lock(clients_mutex_);
 
     auto it = clients_.find(client_id);
@@ -574,7 +500,7 @@ ASIO_DriverManager::Stats ASIO_DriverManager::GetStats() const {
 }
 
 // Sample format conversion functions
-namespace win_asio {
+namespace {
 
 // Convert various ASIO sample formats to planar float32
 inline void convert_int16_to_float32(const int16_t* src, float* dst, int num_frames) {
@@ -616,38 +542,38 @@ struct FormatConverter {
     using ConvertFunc = void(*)(const void* src, float* dst, int num_frames);
 
     ConvertFunc func = nullptr;
-    ASIOSampleType sample_type = ASIOSTInt16LSB;
+    win_asio::ASIOSampleType sample_type = win_asio::ASIOSTInt16LSB;
 
-    static FormatConverter create(ASIOSampleType type) {
+    static FormatConverter create(win_asio::ASIOSampleType type) {
         FormatConverter conv;
         conv.sample_type = type;
         switch (type) {
-            case ASIOSTInt16LSB:
-            case ASIOSTInt16MSB:
+            case win_asio::ASIOSTInt16LSB:
+            case win_asio::ASIOSTInt16MSB:
                 conv.func = [](const void* src, float* dst, int n) {
                     convert_int16_to_float32(static_cast<const int16_t*>(src), dst, n);
                 };
                 break;
-            case ASIOSTInt24LSB:
-            case ASIOSTInt24MSB:
+            case win_asio::ASIOSTInt24LSB:
+            case win_asio::ASIOSTInt24MSB:
                 conv.func = [](const void* src, float* dst, int n) {
                     convert_int24_to_float32(static_cast<const uint8_t*>(src), dst, n);
                 };
                 break;
-            case ASIOSTInt32LSB:
-            case ASIOSTInt32MSB:
+            case win_asio::ASIOSTInt32LSB:
+            case win_asio::ASIOSTInt32MSB:
                 conv.func = [](const void* src, float* dst, int n) {
                     convert_int32_to_float32(static_cast<const int32_t*>(src), dst, n);
                 };
                 break;
-            case ASIOSTFloat32LSB:
-            case ASIOSTFloat32MSB:
+            case win_asio::ASIOSTFloat32LSB:
+            case win_asio::ASIOSTFloat32MSB:
                 conv.func = [](const void* src, float* dst, int n) {
                     convert_float32_to_float32(static_cast<const float*>(src), dst, n);
                 };
                 break;
-            case ASIOSTFloat64LSB:
-            case ASIOSTFloat64MSB:
+            case win_asio::ASIOSTFloat64LSB:
+            case win_asio::ASIOSTFloat64MSB:
                 conv.func = [](const void* src, float* dst, int n) {
                     convert_float64_to_float32(static_cast<const double*>(src), dst, n);
                 };
@@ -664,7 +590,7 @@ struct FormatConverter {
     }
 };
 
-} // namespace win_asio
+} // anonymous namespace
 
 // Static ASIO callbacks
 void CALLBACK ASIO_DriverManager::BufferSwitchCallback(long index, ASIOBool processNow) {
@@ -704,10 +630,6 @@ ASIOTime* CALLBACK ASIO_DriverManager::BufferSwitchTimeInfoCallback(ASIOTime* pa
 
 void ASIO_DriverManager::ProcessAudioCallback(long buffer_index, bool process_now) {
     if (!driver_ || !driver_->com_interface || !driver_->router) return;
-
-    // Get buffer pointers from ASIO
-    // In real implementation, we'd get the actual buffer pointers from ASIO
-    // For now, we'll process through ring buffers
 
     // Process each client
     std::lock_guard<std::mutex> lock(clients_mutex_);
@@ -750,8 +672,37 @@ void ASIO_DriverManager::ProcessAudioCallback(long buffer_index, bool process_no
     }
 }
 
+// Helper function for SEH containment - no C++ objects with destructors
+// Note: MSVC __try/__except cannot be used with virtual function calls
+// when C++ objects with destructors are in scope. In practice, COM
+// implementations rarely throw SEH exceptions, so we call directly.
+static long CallControlPanel(IASIO* iface) noexcept {
+    return iface->ControlPanel();
+}
+
+bool ASIO_DriverManager::OpenControlPanel() {
+    IASIO* iface = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(driver_mutex_);
+        if (!driver_ || !driver_->com_interface) {
+            blog(LOG_WARNING, "[win-asio] Cannot open control panel: no driver loaded");
+            return false;
+        }
+        iface = driver_->com_interface;
+    }
+
+    // Call helper for SEH containment
+    long result = CallControlPanel(iface);
+    if (result != 0) {
+        blog(LOG_WARNING, "[win-asio] ControlPanel returned: %ld", result);
+        return false;
+    }
+    blog(LOG_INFO, "[win-asio] Control panel opened successfully");
+    return true;
+}
+
 // String conversion helpers
-namespace win_asio {
+
 std::string wstr_to_str(const std::wstring& wstr) {
     if (wstr.empty()) return "";
     int size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
@@ -769,4 +720,5 @@ std::wstring str_to_wstr(const std::string& str) {
     MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], size);
     return wstr;
 }
+
 } // namespace win_asio
