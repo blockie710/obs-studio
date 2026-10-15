@@ -1,0 +1,68 @@
+name: Validate
+
+on:
+  push:
+    branches: [master, main]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    branches: [master, main]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  workflow_dispatch:
+
+concurrency:
+  group: validate-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  license-check:
+    name: License Compliance Check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Check LICENSE-CHECK.md compliance
+        shell: bash
+        run: |
+          echo "Validating LICENSE-CHECK.md compliance..."
+          if [ ! -f LICENSE-CHECK.md ]; then
+            echo "::error::LICENSE-CHECK.md not found in repository root"
+            exit 1
+          fi
+          echo "LICENSE-CHECK.md found in repository root."
+          if ! grep -q "GPL-3.0-or-later" LICENSE-CHECK.md; then
+            echo "::error::LICENSE-CHECK.md does not reference GPL-3.0-or-later"
+            exit 1
+          fi
+          echo "LICENSE-CHECK.md references GPL-3.0-or-later."
+
+  rt-safety:
+    name: RT Safety Audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Run RT safety audit
+        shell: bash
+        run: |
+          python tools/rt_safety_audit.py
