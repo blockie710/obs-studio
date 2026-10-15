@@ -65,4 +65,4 @@ jobs:
       - name: Run RT safety audit
         shell: bash
         run: |
-          python tools/rt_safety_audit.py
+          python3 tools/rt_safety_audit.py
