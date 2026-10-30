@@ -1,72 +1,67 @@
-OBS Studio <https://obsproject.com>
-===================================
+LibreCast Studio <https://github.com/LibreCast-Studio>
+====================================
 
-.. image:: https://github.com/obsproject/obs-studio/actions/workflows/push.yaml/badge.svg?branch=master
-   :alt: OBS Studio Build Status - GitHub Actions
-   :target: https://github.com/obsproject/obs-studio/actions/workflows/push.yaml?query=branch%3Amaster
-
-.. image:: https://badges.crowdin.net/obs-studio/localized.svg
-   :alt: OBS Studio Translation Project Progress
-   :target: https://crowdin.com/project/obs-studio
+.. image:: https://github.com/LibreCast-Studio/LibreCast-Studio/actions/workflows/push.yaml/badge.svg?branch=master
+   :alt: LibreCast Studio Build Status - GitHub Actions
+   :target: https://github.com/LibreCast-Studio/LibreCast-Studio/actions/workflows/push.yaml?query=branch%3Amaster
 
 .. image:: https://img.shields.io/discord/348973006581923840.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2
-   :alt: OBS Studio Discord Server
-   :target: https://obsproject.com/discord
+   :alt: LibreCast Studio Discord Server
+   :target: https://discord.gg/librecast
 
-What is OBS Studio?
--------------------
+What is LibreCast Studio?
+-------------------------
 
-OBS Studio is software designed for capturing, compositing, encoding,
+LibreCast Studio is software designed for capturing, compositing, encoding,
 recording, and streaming video content, efficiently.
 
-It's distributed under the GNU General Public License v2 (or any later
+It's distributed under the GNU General Public License v3 (or any later
 version) - see the accompanying COPYING file for more details.
 
 Quick Links
 -----------
 
-- Website: https://obsproject.com
+- Website: https://librecast.studio
 
-- Help/Documentation/Guides: https://github.com/obsproject/obs-studio/wiki
+- Help/Documentation/Guides: https://wiki.librecast.studio
 
-- Forums: https://obsproject.com/forum/
+- Forums: https://forum.librecast.studio
 
-- Build Instructions: https://github.com/obsproject/obs-studio/wiki/Install-Instructions
+- Build Instructions: https://wiki.librecast.studio/install-instructions
 
-- Developer/API Documentation: https://obsproject.com/docs
+- Developer/API Documentation: https://docs.librecast.studio
 
-- Donating/backing/sponsoring: https://obsproject.com/contribute
+- Donating/backing/sponsoring: https://librecast.studio/contribute
 
-- Bug Tracker: https://github.com/obsproject/obs-studio/issues
+- Bug Tracker: https://github.com/LibreCast-Studio/LibreCast-Studio/issues
 
 Contributing
 ------------
 
 - If you would like to help fund or sponsor the project, you can do so
-  via `Patreon <https://www.patreon.com/obsproject>`_, `OpenCollective
-  <https://opencollective.com/obsproject>`_, or `PayPal
-  <https://www.paypal.me/obsproject>`_.  See our `contribute page
-  <https://obsproject.com/contribute>`_ for more information.
+  via `Patreon <https://patreon.com/librecast>`_, `OpenCollective
+  <https://opencollective.com/librecast>`_, or `PayPal
+  <https://www.paypal.me/librecast>`_.  See our `contribute page
+  <https://librecast.studio/contribute>`_ for more information.
 
-- If you wish to contribute code to the project, please make sure to
+- If you wish to contribute code to this project, please make sure to
   read the coding and commit guidelines:
-  https://github.com/obsproject/obs-studio/blob/master/CONTRIBUTING.rst
+  https://github.com/LibreCast-Studio/LibreCast-Studio/blob/main/CONTRIBUTING.rst
 
 - Developer/API documentation can be found here:
-  https://obsproject.com/docs
+  https://docs.librecast.studio
 
-- If you wish to contribute translations, do not submit pull requests.
-  Instead, please use Crowdin.  For more information read this page:
-  https://obsproject.com/wiki/How-To-Contribute-Translations-For-OBS
+- If you wish to contribute translations, please use Crowdin or the
+  project's localization platform. For more information read this page:
+  https://wiki.librecast.studio/how-to-contribute-translations
 
 - Other ways to contribute are by helping people out with support on
-  our forums or in our community chat.  Please limit support to topics
-  you fully understand -- bad advice is worse than no advice.  When it
+  our forums or in our community chat. Please limit support to topics
+  you fully understand -- bad advice is worse than no advice. When it
   comes to something that you don't fully know or understand, please
-  defer to the official help or official channels.
+  defer to the official help or official community channels.
 
+  SAST Tools
+  ----------
 
-SAST Tools
-----------
-
-`PVS-Studio <https://pvs-studio.com/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source>`_ - static analyzer for C, C++, C#, and Java code.
+  `PVS-Studio <https://pvs-studio.com/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source>`_ - static analyzer for C, C++, C#, and Java code.

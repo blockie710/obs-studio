@@ -24,9 +24,9 @@
 #include <util/dstr.h>
 #include <util/util.hpp>
 #include <graphics/matrix3.h>
+#include "d3d11-subsystem.hpp"
 #include <winternl.h>
 #include <d3d9.h>
-#include "d3d11-subsystem.hpp"
 #include <shellscalingapi.h>
 #include <d3dkmthk.h>
 

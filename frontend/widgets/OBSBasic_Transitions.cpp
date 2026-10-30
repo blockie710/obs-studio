@@ -27,6 +27,9 @@
 
 #include <QToolTip>
 #include <QWidgetAction>
+#include <string>
+
+using namespace std;
 
 extern bool disable_3p_plugins;
 extern bool safe_mode;

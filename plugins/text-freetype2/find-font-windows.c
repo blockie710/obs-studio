@@ -4,7 +4,9 @@
 #include "find-font.h"
 #include "text-freetype2.h"
 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 #include <shellapi.h>
 #include <shlobj.h>

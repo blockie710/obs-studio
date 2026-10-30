@@ -17,11 +17,12 @@
 
 #pragma once
 
+#include "utility/qt6-modern-helpers.hpp"
 #include <obs-frontend-internal.hpp>
 
 class OBSBasic;
 
-using namespace std;
+#include <vector>
 
 template<typename T> struct OBSStudioCallback {
 	T callback;
@@ -32,11 +33,22 @@ template<typename T> struct OBSStudioCallback {
 
 struct OBSStudioAPI : obs_frontend_callbacks {
 	OBSBasic *main;
-	vector<OBSStudioCallback<obs_frontend_event_cb>> callbacks;
-	vector<OBSStudioCallback<obs_frontend_save_cb>> saveCallbacks;
-	vector<OBSStudioCallback<obs_frontend_save_cb>> preloadCallbacks;
+	std::vector<OBSStudioCallback<obs_frontend_event_cb>> callbacks;
+	std::vector<OBSStudioCallback<obs_frontend_save_cb>> saveCallbacks;
+	std::vector<OBSStudioCallback<obs_frontend_save_cb>> preloadCallbacks;
 
 	inline OBSStudioAPI(OBSBasic *main_) : main(main_) {}
+
+	librecast::ui::UIResult<void> try_set_current_scene_collection(const char *collection);
+	librecast::ui::UIResult<void> try_set_current_profile(const char *profile);
+	librecast::ui::UIResult<void> try_streaming_start();
+	librecast::ui::UIResult<void> try_streaming_stop();
+	librecast::ui::UIResult<void> try_recording_start();
+	librecast::ui::UIResult<void> try_recording_stop();
+	librecast::ui::UIResult<void> try_replay_buffer_start();
+	librecast::ui::UIResult<void> try_virtualcam_start();
+	librecast::ui::UIResult<void> try_virtualcam_stop();
+	librecast::ui::UIResult<obs_source_t *> try_get_current_scene();
 
 	void *obs_frontend_get_main_window(void) override;
 

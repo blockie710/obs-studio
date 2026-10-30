@@ -59,6 +59,7 @@ void matrix4_from_axisang(struct matrix4 *dst, const struct axisang *aa)
 
 void matrix4_mul(struct matrix4 *dst, const struct matrix4 *m1, const struct matrix4 *m2)
 {
+#ifdef NO_INTRINSICS
 	const struct vec4 *m1v = (const struct vec4 *)m1;
 	const float *m2f = (const float *)m2;
 	struct vec4 out[4];
@@ -73,6 +74,29 @@ void matrix4_mul(struct matrix4 *dst, const struct matrix4 *m1, const struct mat
 	}
 
 	matrix4_copy(dst, (struct matrix4 *)out);
+#else
+	const __m128 m2_0 = _mm_loadu_ps(m2->x.ptr);
+	const __m128 m2_1 = _mm_loadu_ps(m2->y.ptr);
+	const __m128 m2_2 = _mm_loadu_ps(m2->z.ptr);
+	const __m128 m2_3 = _mm_loadu_ps(m2->t.ptr);
+
+	const struct vec4 *m1v = (const struct vec4 *)m1;
+	__m128 out[4];
+
+	for (int i = 0; i < 4; i++) {
+		const __m128 v = _mm_loadu_ps(m1v[i].ptr);
+		__m128 r = _mm_mul_ps(_mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0)), m2_0);
+		r = _mm_add_ps(r, _mm_mul_ps(_mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1)), m2_1));
+		r = _mm_add_ps(r, _mm_mul_ps(_mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 2, 2, 2)), m2_2));
+		r = _mm_add_ps(r, _mm_mul_ps(_mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 3, 3, 3)), m2_3));
+		out[i] = r;
+	}
+
+	_mm_storeu_ps(dst->x.ptr, out[0]);
+	_mm_storeu_ps(dst->y.ptr, out[1]);
+	_mm_storeu_ps(dst->z.ptr, out[2]);
+	_mm_storeu_ps(dst->t.ptr, out[3]);
+#endif
 }
 
 static inline void get_3x3_submatrix(float *dst, const struct matrix4 *m, int i, int j)

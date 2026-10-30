@@ -21,7 +21,6 @@
 
 #include <QMetaType>
 
-using namespace std;
 
 class QPushButton;
 

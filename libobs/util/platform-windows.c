@@ -15,6 +15,7 @@
  */
 
 #include <windows.h>
+#include <winternl.h>
 #include <mmsystem.h>
 #include <shellapi.h>
 #include <shlobj.h>

@@ -197,6 +197,7 @@ target_sources(
   PRIVATE
     graphics/axisang.c
     graphics/axisang.h
+    graphics/basemath.hpp
     graphics/bounds.c
     graphics/bounds.h
     graphics/device-exports.h
@@ -229,6 +230,7 @@ target_sources(
     graphics/shader-parser.c
     graphics/shader-parser.h
     graphics/srgb.h
+    graphics/texture-handle.h
     graphics/texture-render.c
     graphics/vec2.c
     graphics/vec2.h
@@ -236,9 +238,10 @@ target_sources(
     graphics/vec3.h
     graphics/vec4.c
     graphics/vec4.h
+    obs-ffi.h
 )
 
-target_compile_features(libobs PUBLIC cxx_std_17)
+target_compile_features(libobs PUBLIC cxx_std_23)
 
 target_compile_definitions(
   libobs
@@ -290,6 +293,7 @@ set(
   callback/proc.h
   callback/signal.h
   graphics/axisang.h
+  graphics/basemath.hpp
   graphics/bounds.h
   graphics/effect-parser.h
   graphics/effect.h
@@ -305,6 +309,7 @@ set(
   graphics/quat.h
   graphics/shader-parser.h
   graphics/srgb.h
+  graphics/texture-handle.h
   graphics/vec2.h
   graphics/vec3.h
   graphics/vec4.h
@@ -324,6 +329,7 @@ set(
   obs-data.h
   obs-defs.h
   obs-encoder.h
+  obs-ffi.h
   obs-hotkey.h
   obs-hotkeys.h
   obs-interaction.h

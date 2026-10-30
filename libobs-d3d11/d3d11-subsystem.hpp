@@ -1039,3 +1039,75 @@ struct gs_device {
 };
 
 extern "C" EXPORT int device_texture_acquire_sync(gs_texture_t *tex, uint64_t key, uint32_t ms);
+
+#if __has_include(<mdspan>) && __has_include(<expected>) && (__cplusplus >= 202302L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202004L))
+#include <array>
+#include <expected>
+#include <mdspan>
+
+namespace librecast::d3d11 {
+
+using extents_2d = std::extents<size_t, std::dynamic_extent, std::dynamic_extent>;
+
+/**
+ * Phase 2 Modernization: Safe, zero-copy strided 2D view over a mapped D3D11 dynamic 2D texture.
+ * Uses std::expected to propagate HRESULT errors without throwing exceptions.
+ */
+template <typename PixelT = uint32_t>
+[[nodiscard]] inline std::expected<std::mdspan<PixelT, extents_2d, std::layout_stride>, HRESULT>
+gs_texture_map_mdspan(gs_texture_2d *tex) noexcept
+{
+	if (!tex || !tex->device || !tex->device->context || !tex->texture)
+		return std::unexpected(E_INVALIDARG);
+
+	D3D11_MAPPED_SUBRESOURCE map{};
+	HRESULT hr = tex->device->context->Map(tex->texture, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	if (FAILED(hr))
+		return std::unexpected(hr);
+
+	if (map.RowPitch % sizeof(PixelT) != 0) {
+		tex->device->context->Unmap(tex->texture, 0);
+		return std::unexpected(E_INVALIDARG);
+	}
+
+	std::layout_stride::mapping<extents_2d> layout{
+		extents_2d{static_cast<size_t>(tex->height), static_cast<size_t>(tex->width)},
+		std::array<size_t, 2>{static_cast<size_t>(map.RowPitch) / sizeof(PixelT), 1}
+	};
+
+	return std::mdspan<PixelT, extents_2d, std::layout_stride>(
+		reinterpret_cast<PixelT *>(map.pData), layout);
+}
+
+/**
+ * Phase 2 Modernization: Safe, zero-copy strided 2D view over a mapped D3D11 staging surface.
+ * Uses std::expected to propagate HRESULT errors without throwing exceptions.
+ */
+template <typename PixelT = uint32_t>
+[[nodiscard]] inline std::expected<std::mdspan<PixelT, extents_2d, std::layout_stride>, HRESULT>
+gs_stagesurface_map_mdspan(gs_stage_surface *stagesurf) noexcept
+{
+	if (!stagesurf || !stagesurf->device || !stagesurf->device->context || !stagesurf->texture)
+		return std::unexpected(E_INVALIDARG);
+
+	D3D11_MAPPED_SUBRESOURCE map{};
+	HRESULT hr = stagesurf->device->context->Map(stagesurf->texture, 0, D3D11_MAP_READ, 0, &map);
+	if (FAILED(hr))
+		return std::unexpected(hr);
+
+	if (map.RowPitch % sizeof(PixelT) != 0) {
+		stagesurf->device->context->Unmap(stagesurf->texture, 0);
+		return std::unexpected(E_INVALIDARG);
+	}
+
+	std::layout_stride::mapping<extents_2d> layout{
+		extents_2d{static_cast<size_t>(stagesurf->height), static_cast<size_t>(stagesurf->width)},
+		std::array<size_t, 2>{static_cast<size_t>(map.RowPitch) / sizeof(PixelT), 1}
+	};
+
+	return std::mdspan<PixelT, extents_2d, std::layout_stride>(
+		reinterpret_cast<PixelT *>(map.pData), layout);
+}
+
+} // namespace librecast::d3d11
+#endif

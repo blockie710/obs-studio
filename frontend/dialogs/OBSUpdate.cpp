@@ -19,6 +19,8 @@ OBSUpdate::OBSUpdate(QWidget *parent, bool manualUpdate, const QString &text)
 	}
 }
 
+OBSUpdate::~OBSUpdate() = default;
+
 void OBSUpdate::on_yes_clicked()
 {
 	done(OBSUpdate::Yes);

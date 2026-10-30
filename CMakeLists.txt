@@ -25,9 +25,12 @@ if(OS_WINDOWS)
   add_subdirectory(libobs-winrt)
 endif()
 add_subdirectory(libobs-opengl)
+add_subdirectory(libobs-d3d12)
 add_subdirectory(plugins)
+add_subdirectory(src)
 
-add_subdirectory(test/test-input)
+enable_testing()
+add_subdirectory(test)
 
 add_subdirectory(frontend)
 

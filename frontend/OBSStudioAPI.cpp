@@ -5,6 +5,8 @@
 
 #include <qt-wrappers.hpp>
 
+using namespace std;
+
 extern volatile bool streaming_active;
 extern volatile bool recording_active;
 extern volatile bool recording_paused;
@@ -197,6 +199,112 @@ void OBSStudioAPI::obs_frontend_set_current_profile(const char *profile)
 			}
 		}
 	}
+}
+
+librecast::ui::UIResult<obs_source_t *> OBSStudioAPI::try_get_current_scene()
+{
+	if (!main) {
+		return std::unexpected(librecast::ui::UIError::BackendDisconnected());
+	}
+	obs_source_t *scene = obs_frontend_get_current_scene();
+	if (!scene) {
+		return std::unexpected(librecast::ui::UIError::InvalidSourceHandle());
+	}
+	return scene;
+}
+
+librecast::ui::UIResult<void> OBSStudioAPI::try_set_current_scene_collection(const char *collection)
+{
+	if (!main || !collection || collection[0] == '\0') {
+		return std::unexpected(librecast::ui::UIError::InvalidParameter());
+	}
+	QList<QAction *> menuActions = main->ui->sceneCollectionMenu->actions();
+	QString qstrCollection = QT_UTF8(collection);
+
+	for (int i = 0; i < menuActions.count(); i++) {
+		QAction *action = menuActions[i];
+		QVariant v = action->property("file_name");
+		if (v.typeName() != nullptr && action->text() == qstrCollection) {
+			action->trigger();
+			return {};
+		}
+	}
+	return std::unexpected(librecast::ui::UIError::ProfileLoadFailed());
+}
+
+librecast::ui::UIResult<void> OBSStudioAPI::try_set_current_profile(const char *profile)
+{
+	if (!main || !profile || profile[0] == '\0') {
+		return std::unexpected(librecast::ui::UIError::InvalidParameter());
+	}
+	QList<QAction *> menuActions = main->ui->profileMenu->actions();
+	QString qstrProfile = QT_UTF8(profile);
+
+	for (int i = 0; i < menuActions.count(); i++) {
+		QAction *action = menuActions[i];
+		QVariant v = action->property("file_name");
+		if (v.typeName() != nullptr && action->text() == qstrProfile) {
+			action->trigger();
+			return {};
+		}
+	}
+	return std::unexpected(librecast::ui::UIError::ProfileLoadFailed());
+}
+
+librecast::ui::UIResult<void> OBSStudioAPI::try_streaming_start()
+{
+	if (!main)
+		return std::unexpected(librecast::ui::UIError::BackendDisconnected());
+	obs_frontend_streaming_start();
+	return {};
+}
+
+librecast::ui::UIResult<void> OBSStudioAPI::try_streaming_stop()
+{
+	if (!main)
+		return std::unexpected(librecast::ui::UIError::BackendDisconnected());
+	obs_frontend_streaming_stop();
+	return {};
+}
+
+librecast::ui::UIResult<void> OBSStudioAPI::try_recording_start()
+{
+	if (!main)
+		return std::unexpected(librecast::ui::UIError::BackendDisconnected());
+	obs_frontend_recording_start();
+	return {};
+}
+
+librecast::ui::UIResult<void> OBSStudioAPI::try_recording_stop()
+{
+	if (!main)
+		return std::unexpected(librecast::ui::UIError::BackendDisconnected());
+	obs_frontend_recording_stop();
+	return {};
+}
+
+librecast::ui::UIResult<void> OBSStudioAPI::try_replay_buffer_start()
+{
+	if (!main)
+		return std::unexpected(librecast::ui::UIError::BackendDisconnected());
+	obs_frontend_replay_buffer_start();
+	return {};
+}
+
+librecast::ui::UIResult<void> OBSStudioAPI::try_virtualcam_start()
+{
+	if (!main)
+		return std::unexpected(librecast::ui::UIError::BackendDisconnected());
+	obs_frontend_start_virtualcam();
+	return {};
+}
+
+librecast::ui::UIResult<void> OBSStudioAPI::try_virtualcam_stop()
+{
+	if (!main)
+		return std::unexpected(librecast::ui::UIError::BackendDisconnected());
+	obs_frontend_stop_virtualcam();
+	return {};
 }
 
 void OBSStudioAPI::obs_frontend_create_profile(const char *name)

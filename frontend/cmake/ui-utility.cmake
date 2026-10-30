@@ -41,6 +41,7 @@ target_sources(
     utility/OBSTranslator.cpp
     utility/OBSTranslator.hpp
     utility/platform.hpp
+    utility/qt6-modern-helpers.hpp
     utility/QuickTransition.cpp
     utility/QuickTransition.hpp
     utility/RemoteTextThread.cpp
