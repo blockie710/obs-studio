@@ -1,0 +1,91 @@
+// Licence: GPL-3.0-or-later
+// LibreCast Studio — Slint pilot.
+// Ported from the AI Studio demo's sketched component (docs/experimental/slint-visual-spec.md §8)
+// to prove the Slint DSL <-> C++/Rust callback round-trip (T-Bar -> transition_triggered,
+// buffer-size -> buffer_size_changed) and reactive state styling (is_streaming).
+//
+// NOTE: telemetry values here are DEAD LABELS (see spec §C). They must be wired to real
+// Rust/C++23 data; they are presentation defaults only, never measurements.
+
+import { Button, Slider } from "std-widgets.slint";
+
+export component BroadcastControlSurface inherits Window {
+    in-out property <float> t_bar_position: 0.0;
+    in-out property <float> vmaf_score: 97.4;              // placeholder, wire to real metric
+    in-out property <int> asio_buffer_samples: 64;         // placeholder, wire to real config
+    in-out property <bool> is_streaming: false;
+
+    callback transition_triggered(string);
+    callback buffer_size_changed(int);
+
+    background: #0a0a0a;
+    title: "LibreCast Slint Pilot";
+    default-font-family: "Plus Jakarta Sans";
+
+    VerticalLayout {
+        padding: 12px;
+        spacing: 8px;
+
+        Text {
+            text: "LibreCast Slint Surface (Native GPU Render)";
+            color: #22d3ee;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        HorizontalLayout {
+            spacing: 16px;
+            Text {
+                text: "VMAF: " + root.vmaf_score;
+                color: #34d399;
+                font-family: "JetBrains Mono";
+            }
+            Text {
+                text: "ASIO Buffer: " + root.asio_buffer_samples + " smp";
+                color: #94a3b8;
+                font-family: "JetBrains Mono";
+            }
+        }
+
+        Slider {
+            minimum: 0.0;
+            maximum: 1.0;
+            value <=> root.t_bar_position;
+            changed => { root.transition_triggered("t_bar"); }
+        }
+
+        // Static LED-style status pill (reactive on is_streaming). Same motif as the demo's
+        // live/danger states: rose when on air, muted neutral when idle.
+        Rectangle {
+            height: 24px;
+            border-radius: 12px;
+            background: root.is_streaming ? #7f1d1d : #262626;
+            Rectangle {
+                width: 10px; height: 10px; border-radius: 5px;
+                x: 8px; y: (parent.height - self.height) / 2;
+                background: root.is_streaming ? #ef4444 : #94a3b8;
+            }
+            Text {
+                x: 24px;
+                vertical-alignment: center;
+                height: parent.height;
+                text: root.is_streaming ? "● LIVE" : "○ IDLE";
+                color: root.is_streaming ? #fecaca : #94a3b8;
+                font-size: 11px;
+                font-family: "JetBrains Mono";
+            }
+        }
+
+        Text {
+            text: "Callback round-trip: drag T-Bar, or click the buffer button";   // hint
+            color: #525252;
+            font-size: 10px;
+            font-family: "JetBrains Mono";
+        }
+
+        Button {
+            text: "Set 128-sample buffer";
+            clicked => { root.buffer_size_changed(128); root.asio_buffer_samples = 128; }
+        }
+    }
+}

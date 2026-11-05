@@ -16,6 +16,7 @@ include(defaults)
 include(helpers)
 
 option(ENABLE_UI "Enable building with UI (requires Qt)" ON)
+option(ENABLE_SLINT_PILOT "Build the experimental Slint pilot (EXPERIMENTAL; pulls Slint via FetchContent)" OFF)
 option(ENABLE_SCRIPTING "Enable scripting support" ON)
 option(ENABLE_HEVC "Enable HEVC encoders" ON)
 
@@ -30,5 +31,9 @@ add_subdirectory(plugins)
 add_subdirectory(test/test-input)
 
 add_subdirectory(frontend)
+
+if(ENABLE_SLINT_PILOT)
+  add_subdirectory(experimental/slint)
+endif()
 
 message_configuration()
