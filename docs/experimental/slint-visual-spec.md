@@ -162,3 +162,35 @@ Do these four behind a Slint flag/entry point. Keep Qt6 as the app host; Slint r
 - Fabricated performance claims in labels ("AVX-512", "0.12ms", "Bayesian Kalman", "v0.9.4") — either genuinely implement or drop the labels.
 - The AI-Studio branding ("AetherOBS", "aether_stats") vs LibreCast naming.
 - Simulated plugin names referencing real commercial products ("FabFilter Pro-L 2 Clone", "Universal Audio 1176") — legal/3P branding exposure.
+
+## D. Build & verify the pilot (scaffold as of branch `experimental/slint-pilot`)
+
+The pilot is the Slint + C++ stub under `experimental/slint/` — `BroadcastControlSurface.slint`,
+`pilot_main.cpp`, `CMakeLists.txt` (Slint v1.8.0 via FetchContent). It is **excluded from the
+default build**; stable/`master` builds are unaffected.
+
+Prereqs for ANY configure on this repo (pre-existing, independent of the pilot):
+the git submodules `plugins/obs-browser` and `plugins/obs-websocket` must be initialized —
+`git submodule update --init` (a bare configure fails at `plugins/CMakeLists.txt` otherwise).
+
+```bash
+# 1) Configure WITHOUT the pilot (the stable path) — must stay green:
+cmake -S . -B build -G "Visual Studio 17 2022" -DENABLE_SLINT_PILOT=OFF
+
+# 2) Configure WITH the pilot (first run pulls Slint from GitHub, needs network):
+cmake -S . -B build-pilot -G "Visual Studio 17 2022" -DENABLE_SLINT_PILOT=ON
+
+# 3) Build just the pilot:
+cmake --build build-pilot --config Release --target librecast-slint-pilot
+```
+
+Success = `(2)` configures and `(3)` produces `librecast-slint-pilot.exe`; the app shows the
+T-Bar surface and prints the callback round-trips to stderr. The flag being default-OFF is
+the contamination guard: `git status` on `master` must show no staged pilot files.
+
+## E. Verified state (2026-11-05)
+
+- Pilot-OFF configure: **passes** (exit 0; only obs-browser/obs-libfdk/test-input disabled).
+- Pilot-ON configure: verified during scaffold (see git log / run output).
+- The `B`-value telemetry in `BroadcastControlSurface.slint` (VMAF 97.4, buffer 64)
+  is dead-label placeholder data — must be wired to real Rust/C++23 metrics, per §C.
