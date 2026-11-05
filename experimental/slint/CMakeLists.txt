@@ -27,8 +27,11 @@ add_executable(librecast-slint-pilot
 # Compile BroadcastControlSurface.slint into C++; binds the DSL callbacks/properties
 # to pilot_main.cpp (see pilot_main.cpp for the round-trip handlers). Build manually
 # with --target librecast-slint-pilot; it is excluded from the default app/install.
+# NOTE: Slint 1.8's slint_target_sources macro takes source files DIRECTLY (no "FILES"
+# keyword) — "FILES" is not a keyword in its signature and would be treated as a source
+# file, generating a phantom FILES.h compile rule that fails the build.
 slint_target_sources(librecast-slint-pilot
-  FILES BroadcastControlSurface.slint
+  BroadcastControlSurface.slint
 )
 
 target_link_libraries(librecast-slint-pilot

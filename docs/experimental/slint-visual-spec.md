@@ -181,8 +181,21 @@ cmake -S . -B build -G "Visual Studio 17 2022" -DENABLE_SLINT_PILOT=OFF
 cmake -S . -B build-pilot -G "Visual Studio 17 2022" -DENABLE_SLINT_PILOT=ON
 
 # 3) Build just the pilot:
-cmake --build build-pilot --config Release --target librecast-slint-pilot
+RUSTFLAGS="-A dangerous_implicit_autorefs" \
+  cmake --build build-pilot --config Release --target librecast-slint-pilot
 ```
+
+**Why `RUSTFLAGS` is required (verified 2026-11-05):** Slint 1.8.0's Rust crates don't
+compile on rustc 1.98 (newer than Slint's toolchain baseline). Modern rustc turns
+`dangerous_implicit_autorefs` into a deny-by-default lint; `slint-interpreter` trips it at
+`dynamic_type.rs:170`. The `-A` allows that one lint and unblocks the build — an upstream
+lockstep issue to factor into the framework verdict (§B). Long-term: pin a newer Slint or an
+older Rust stable.
+
+**Header-name convention (recent porting gotcha):** Slint's CMake generates the C++ header from
+the `.slint` file's base name in PascalCase — `BroadcastControlSurface.slint` → include
+`"BroadcastControlSurface.h"`, NOT a lowercase slug. (Slint's own Rust/JS APIs use a different
+naming; the C++ generator uses `NAME_WE` of the file.)
 
 Success = `(2)` configures and `(3)` produces `librecast-slint-pilot.exe`; the app shows the
 T-Bar surface and prints the callback round-trips to stderr. The flag being default-OFF is
@@ -191,6 +204,13 @@ the contamination guard: `git status` on `master` must show no staged pilot file
 ## E. Verified state (2026-11-05)
 
 - Pilot-OFF configure: **passes** (exit 0; only obs-browser/obs-libfdk/test-input disabled).
-- Pilot-ON configure: verified during scaffold (see git log / run output).
+- Pilot-ON configure: **passes** (exit 0; Slint v1.8.0 fetched via FetchContent, target `librecast-slint-pilot` registers in the VS build graph).
+- **Toolchain friction (reproducible, upstream):** building Slint 1.8.0 on Rust 1.98.0 fails —
+  modern rustc's deny-by-default `dangerous_implicit_autorefs` lint rejects
+  `slint-interpreter/src/dynamic_type.rs:170`. This is a Slint-vs-newer-Rust incompatibility,
+  NOT a defect in the pilot. Immediate workaround:
+  `RUSTFLAGS="-A dangerous_implicit_autorefs" cmake --build ... --target librecast-slint-pilot`.
+  Longer-term: pin a newer Slint release or an older Rust channel (friction to evaluate in the
+  framework verdict — see §B).
 - The `B`-value telemetry in `BroadcastControlSurface.slint` (VMAF 97.4, buffer 64)
   is dead-label placeholder data — must be wired to real Rust/C++23 metrics, per §C.

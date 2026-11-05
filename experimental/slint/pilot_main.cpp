@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-#include "broadcast-control-surface.h"
+#include "BroadcastControlSurface.h"
 
 int main()
 {
