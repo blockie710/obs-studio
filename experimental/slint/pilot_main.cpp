@@ -31,7 +31,6 @@ int main()
 
     // C++ -> DSL: reactive property push (demonstrates declarative state styling).
     ui->set_is_streaming(false);
-    ui->set_asio_buffer_samples(64);
 
     ui->run();
 

@@ -39,5 +39,12 @@ target_link_libraries(librecast-slint-pilot
     Slint::Slint
 )
 
+# MSVC spews thousands of C4267-style warnings from slint.h template instantiations
+# on the generated TU; silencing them cuts compile time/io meaningfully. A pilot stub
+# has no warning policy worth enforcing yet.
+if(MSVC)
+    target_compile_options(librecast-slint-pilot PRIVATE /W0)
+endif()
+
 # Slint minimum is C++11; the repo baseline is C++23 (docs/modernization-implementation-plan.md).
 target_compile_features(librecast-slint-pilot PRIVATE cxx_std_23)
