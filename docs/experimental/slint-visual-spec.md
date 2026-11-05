@@ -205,12 +205,29 @@ the contamination guard: `git status` on `master` must show no staged pilot file
 
 - Pilot-OFF configure: **passes** (exit 0; only obs-browser/obs-libfdk/test-input disabled).
 - Pilot-ON configure: **passes** (exit 0; Slint v1.8.0 fetched via FetchContent, target `librecast-slint-pilot` registers in the VS build graph).
+- **Pilot builds and RUNS.** `cmake --build build-pilot --config Release --target librecast-slint-pilot` exits 0
+  and produces `experimental/slint/Release/librecast-slint-pilot.exe` (92 KB). Launching it opens a
+  window titled **"LibreCast Slint Pilot"** that renders the surface — pixel-verified: bg `#0a0a0a`,
+  cyan `#22d3ee` title text, slider + status + button present. It stays alive and responsive
+  (WM_GETTITLE, IsWindowVisible, PrintWindow all succeed; process runs until killed).
 - **Toolchain friction (reproducible, upstream):** building Slint 1.8.0 on Rust 1.98.0 fails —
   modern rustc's deny-by-default `dangerous_implicit_autorefs` lint rejects
   `slint-interpreter/src/dynamic_type.rs:170`. This is a Slint-vs-newer-Rust incompatibility,
   NOT a defect in the pilot. Immediate workaround:
   `RUSTFLAGS="-A dangerous_implicit_autorefs" cmake --build ... --target librecast-slint-pilot`.
   Longer-term: pin a newer Slint release or an older Rust channel (friction to evaluate in the
-  framework verdict — see §B).
-- The `B`-value telemetry in `BroadcastControlSurface.slint` (VMAF 97.4, buffer 64)
-  is dead-label placeholder data — must be wired to real Rust/C++23 metrics, per §C.
+  framework verdict — see §B). Workaround verified: with it, the full Slint Rust toolchain
+  (`slint_cpp.dll`) compiles in ~30s.
+- **Compile-time gotcha (fixed):** a full demo-dock-sized `.slint` generates one enormous
+  template-heavy `slint_generated_<Base>_1.cpp` TU that takes 20–40+ min on MSVC and got
+  wall-clock-killed twice before linking. The pilot surface was pared to a minimal
+  Slider/Text/Button round-trip (§B items 2+4), which built to exe in minutes. Keep pilot
+  `.slint` files minimal; /W0 silences MSVC's template-warning flood from slint.h.
+- **CMake gotchas (fixed, both real):** `slint_target_sources` takes `.slint` files directly —
+  there is NO `FILES` keyword (it becomes a phantom source and emits a failing `FILES.h` rule);
+  and the generated C++ header is the file's base name in PascalCase
+  (`BroadcastControlSurface.slint` → `#include "BroadcastControlSurface.h"`).
+- The pared `BroadcastControlSurface.slint` keeps only two placeholder props
+  (`t_bar_position`, `is_streaming`) — pure round-trip state with no fabricated values.
+  Real metric surfaces (VMAF, buffer, jitter) belong in the telemetry dock later,
+  wired to real Rust/C++23 data per §C — never hardcoded demo numbers.
